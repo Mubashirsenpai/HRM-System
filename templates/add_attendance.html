@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Add Attendance - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 mb-4">Add Attendance Record</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Attendance Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('add_attendance') }}">
+                        <div class="mb-3">
+                            <label for="employee_id" class="form-label">Employee</label>
+                            <select class="form-select" id="employee_id" name="employee_id" required>
+                                <option value="">Select Employee</option>
+                                {% for employee in employees %}
+                                <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }} ({{ employee.employee_id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="date" name="date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="check_in" class="form-label">Check-in Time</label>
+                            <input type="datetime-local" class="form-control" id="check_in" name="check_in">
+                        </div>
+                        <div class="mb-3">
+                            <label for="check_out" class="form-label">Check-out Time</label>
+                            <input type="datetime-local" class="form-control" id="check_out" name="check_out">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Record</button>
+                        <a href="{{ url_for('attendance') }}" class="btn btn-secondary ms-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

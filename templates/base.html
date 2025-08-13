@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HR Management System{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> {# Link to external CSS #}
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="px-3">
+            <div class="Logo">
+                 <img src="{{ url_for('static', filename='Baobab Logo.jpg') }}" alt="HRMS Logo" class="img-fluid mb-3">
+            </div>
+            <h4 class="text-white mb-4">HRMS</h4>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'employees' or request.endpoint == 'add_employee' %}active{% endif %}" href="{{ url_for('employees') }}">
+                        <i class="fas fa-users me-2"></i>Employees
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'departments' or request.endpoint == 'add_department' %}active{% endif %}" href="{{ url_for('departments') }}">
+                        <i class="fas fa-building me-2"></i>Departments
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'positions' or request.endpoint == 'add_position' %}active{% endif %}" href="{{ url_for('positions') }}">
+                        <i class="fas fa-briefcase me-2"></i>Positions
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <!-- Corrected line: 'leaves' was changed to 'leave' -->
+                    <a class="nav-link {% if request.endpoint == 'leave' or request.endpoint == 'add_leave' %}active{% endif %}" href="{{ url_for('leave') }}">
+                        <i class="fas fa-calendar-alt me-2"></i>Leave Management
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'attendance' or request.endpoint == 'add_attendance' %}active{% endif %}" href="{{ url_for('attendance') }}">
+                        <i class="fas fa-clock me-2"></i>Attendance
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'payroll' or request.endpoint == 'generate_payroll' %}active{% endif %}" href="{{ url_for('payroll') }}">
+                        <i class="fas fa-money-bill-wave me-2"></i>Payroll
+                    </a>
+                </li>
+                <li class="nav-item mt-auto">
+                    <a class="nav-link" href="{{ url_for('logout') }}">
+                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else ('danger' if category == 'error' else category) }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function() {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                let bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+
+        // Add active class to sidebar links based on current route
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            navLinks.forEach(link => {
+                // Check if the link's href matches the current path
+                // or if it's a sub-route (e.g., /employees/add for /employees)
+                if (link.getAttribute('href') === currentPath || currentPath.startsWith(link.getAttribute('href') + '/')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

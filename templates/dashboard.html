@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 mb-4">Dashboard</h1>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary"> 
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title text-white">{{ total_employees }}</h4> 
+                            <p class="card-text text-white">Total Employees</p> 
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x text-white"></i> 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success"> 
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title text-white">{{ total_departments }}</h4> 
+                            <p class="card-text text-white">Departments</p> 
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-building fa-2x text-white"></i> 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning"> 
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title text-dark">{{ pending_leaves }}</h4> 
+                            <p class="card-text text-dark">Pending Leaves</p> 
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-alt fa-2x text-dark"></i> 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-info"> 
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title text-white">{{ recent_attendance }}</h4> 
+                            <p class="card-text text-white">Today's Attendance</p> 
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x text-white"></i> 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <a href="{{ url_for('add_employee') }}" class="btn btn-primary w-100 mb-2">
+                                <i class="fas fa-user-plus me-2"></i>Add Employee
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{{ url_for('add_leave') }}" class="btn btn-success w-100 mb-2">
+                                <i class="fas fa-calendar-plus me-2"></i>Request Leave
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{{ url_for('add_attendance') }}" class="btn btn-info w-100 mb-2">
+                                <i class="fas fa-clock me-2"></i>Mark Attendance
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{{ url_for('add_department') }}" class="btn btn-warning w-100 mb-2">
+                                <i class="fas fa-building me-2"></i>Add Department
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for activity in recent_activities %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">
+                                    {% if activity.type == 'employee_hired' %}
+                                        New Employee
+                                    {% elif activity.type == 'leave_request' %}
+                                        Leave Request Submitted
+                                    {% elif activity.type == 'new_department' %}
+                                        New Department
+                                    {% endif %}
+                                </h6>
+                                <small class="text-muted">{{ activity.timestamp.strftime('%b %d, %Y at %I:%M %p') }}</small>
+                            </div>
+                            <p class="mb-1">{{ activity.message }}</p>
+                        </div>
+                        {% else %}
+                        <div class="list-group-item">
+                            <p class="mb-0 text-muted">No recent activity found.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

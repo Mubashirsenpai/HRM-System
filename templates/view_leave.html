@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}View Leave Request - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 mb-4">Leave Request Details</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Details for {{ leave.employee.first_name }} {{ leave.employee.last_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Employee:</dt>
+                        <dd class="col-sm-8">{{ leave.employee.first_name }} {{ leave.employee.last_name }} ({{ leave.employee.employee_id }})</dd>
+
+                        <dt class="col-sm-4">Leave Type:</dt>
+                        <dd class="col-sm-8">{{ leave.leave_type.capitalize() }}</dd>
+
+                        <dt class="col-sm-4">Start Date:</dt>
+                        <dd class="col-sm-8">{{ leave.start_date.strftime('%Y-%m-%d') }}</dd>
+
+                        <dt class="col-sm-4">End Date:</dt>
+                        <dd class="col-sm-8">{{ leave.end_date.strftime('%Y-%m-%d') }}</dd>
+
+                        <dt class="col-sm-4">Days Requested:</dt>
+                        <dd class="col-sm-8">{{ leave.days_requested }}</dd>
+
+                        <dt class="col-sm-4">Reason:</dt>
+                        <dd class="col-sm-8">{{ leave.reason }}</dd>
+
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8"><span class="badge {% if leave.status == 'approved' %}bg-success{% elif leave.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">{{ leave.status.capitalize() }}</span></dd>
+
+                        <dt class="col-sm-4">Requested On:</dt>
+                        <dd class="col-sm-8">{{ leave.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                    </dl>
+                    <div class="mt-4">
+                        <a href="{{ url_for('edit_leave', leave_id=leave.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-edit me-2"></i>Edit Leave
+                        </a>
+                        <a href="{{ url_for('delete_leave', leave_id=leave.id) }}" class="btn btn-danger ms-2">
+                            <i class="fas fa-trash me-2"></i>Delete Leave
+                        </a>
+                        <a href="{{ url_for('leaves') }}" class="btn btn-light ms-2">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Leave Requests
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Payroll - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2">Payroll Management</h1>
+                <!-- Button to trigger payroll generation modal or form -->
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#generatePayrollModal">
+                    <i class="fas fa-calculator me-2"></i>Generate Payroll
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Payroll Records</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Pay Period</th>
+                                    <th>Basic Salary</th>
+                                    <th>Overtime Pay</th>
+                                    <th>Bonus</th>
+                                    <th>Deductions</th>
+                                    <th>Net Salary</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Loop through payroll records and display them here -->
+                                {% for payroll in payroll_records %}
+                                <tr>
+                                    <td>{{ payroll.employee.first_name }} {{ payroll.employee.last_name }}</td>
+                                    <td>{{ payroll.pay_period_start.strftime('%Y-%m-%d') }} to {{ payroll.pay_period_end.strftime('%Y-%m-%d') }}</td>
+                                    <td>${{ "%.2f"|format(payroll.gross_salary) }}</td>
+                                    <td>${{ "%.2f"|format(payroll.overtime_pay) }}</td>
+                                    <td>${{ "%.2f"|format(payroll.bonus) }}</td>
+                                    <td>${{ "%.2f"|format(payroll.deductions) }}</td>
+                                    <td>${{ "%.2f"|format(payroll.net_salary) }}</td>
+                                    <td><span class="badge bg-success">{{ payroll.status.capitalize() }}</span></td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="#" class="btn btn-sm btn-outline-primary" title="View"><i class="fas fa-eye"></i></a>
+                                            <a href="#" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fas fa-edit"></i></a>
+                                            <a href="#" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="9" class="text-center">No payroll records found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for generating payroll -->
+<div class="modal fade" id="generatePayrollModal" tabindex="-1" aria-labelledby="generatePayrollModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('generate_payroll') }}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="generatePayrollModalLabel">Generate Payroll</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="employee_id_payroll" class="form-label">Employee</label>
+                        <select class="form-select" id="employee_id_payroll" name="employee_id" required>
+                            <option value="">Select Employee</option>
+                            {% for employee in employees %}
+                            <option value="{{ employee.id }}">{{ employee.first_name }} {{ employee.last_name }} ({{ employee.employee_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pay_period_start" class="form-label">Pay Period Start Date</label>
+                        <input type="date" class="form-control" id="pay_period_start" name="pay_period_start" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="pay_period_end" class="form-label">Pay Period End Date</label>
+                        <input type="date" class="form-control" id="pay_period_end" name="pay_period_end" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Generate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

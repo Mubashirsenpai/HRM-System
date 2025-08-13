@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2">Attendance Management</h1>
+                <a href="{{ url_for('add_attendance') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Attendance
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Attendance Records</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Date</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                    <th>Work Hours</th>
+                                    <th>Overtime Hours</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in attendance_records %}
+                                <tr>
+                                    <td>{{ record.employee.first_name }} {{ record.employee.last_name }}</td>
+                                    <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ record.check_in.strftime('%H:%M') if record.check_in else 'N/A' }}</td>
+                                    <td>{{ record.check_out.strftime('%H:%M') if record.check_out else 'N/A' }}</td>
+                                    <td>{{ "%.2f"|format(record.work_hours) if record.work_hours else 'N/A' }}</td>
+                                    <td>{{ "%.2f"|format(record.overtime_hours) if record.overtime_hours else 'N/A' }}</td>
+                                    <td><span class="badge {% if record.status == 'present' %}bg-success{% elif record.status == 'late' %}bg-warning{% else %}bg-danger{% endif %}">{{ record.status.capitalize() }}</span></td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="#" class="btn btn-sm btn-outline-primary" title="View Details"><i class="fas fa-eye"></i></a>
+                                            <a href="#" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fas fa-edit"></i></a>
+                                            <a href="#" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No attendance records found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

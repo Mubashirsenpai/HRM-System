@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Upload Employees - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 mb-4">Bulk Upload Employees</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Upload a CSV or Excel File</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">
+                        Please upload a CSV or Excel (<code>.xlsx</code>, <code>.xls</code>) file containing employee data. The file should have the following header columns in this exact order: <code>employee_id, first_name, last_name, email, phone, hire_date, department_id, position_id, salary</code>.
+                        <br>
+                        <a href="{{ url_for('sample_csv') }}" class="btn btn-sm btn-outline-info mt-2">
+                            <i class="fas fa-file-download me-2"></i>Download Sample CSV Template
+                        </a>
+                         <a href="{{ url_for('sample_excel') }}" class="btn btn-sm btn-outline-info mt-2">
+                            <i class="fas fa-file-download me-2"></i>Download Sample Excel Template
+                        </a>
+                    </p>
+                    <form method="POST" action="{{ url_for('bulk_upload_employees') }}" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Select File</label>
+                            <input type="file" class="form-control" id="file" name="file" accept=".csv, .xlsx, .xls" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload File</button>
+                        <a href="{{ url_for('employees') }}" class="btn btn-secondary ms-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Delete - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 mb-4">Confirm Deletion</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">Delete Department: {{ department.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Are you sure you want to delete the department "<strong>{{ department.name }}</strong>"?</p>
+                    <p class="card-text text-danger"><strong>Warning: This action cannot be undone.</strong></p>
+                    {% if department.employees %}
+                    <div class="alert alert-warning mt-3" role="alert">
+                        This department is currently assigned to {{ department.employees|length }} employee(s). You must reassign these employees before deleting this department.
+                    </div>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('delete_department', department_id=department.id) }}" class="mt-4">
+                        <button type="submit" class="btn btn-danger" {% if department.employees %}disabled{% endif %}>
+                            <i class="fas fa-trash me-2"></i>Confirm Delete
+                        </button>
+                        <a href="{{ url_for('departments') }}" class="btn btn-secondary ms-2">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
