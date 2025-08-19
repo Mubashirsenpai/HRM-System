@@ -24,7 +24,7 @@
                         This position is currently assigned to {{ position.employees|length }} employee(s). You must reassign these employees before deleting this position.
                     </div>
                     {% endif %}
-                    <form method="POST" action="{{ url_for('delete_position', position_id=position.id) }}" class="mt-4">
+                    <form method="POST" action="{{ url_for('delete_position', id=position.id) }}" class="mt-4">
                         <button type="submit" class="btn btn-danger" {% if position.employees %}disabled{% endif %}>
                             <i class="fas fa-trash me-2"></i>Confirm Delete
                         </button>

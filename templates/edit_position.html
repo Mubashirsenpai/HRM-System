@@ -17,7 +17,7 @@
                     <h5 class="card-title mb-0">Position Details</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('edit_position', position_id=position.id) }}">
+                    <form method="POST" action="{{ url_for('edit_position', id=position.id) }}">
                         <div class="mb-3">
                             <label for="title" class="form-label">Position Title</label>
                             <input type="text" class="form-control" id="title" name="title" value="{{ position.title }}" required>

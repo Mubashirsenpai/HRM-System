@@ -28,7 +28,6 @@
                                 <tr>
                                     <th>Department Name</th>
                                     <th>Description</th>
-                                    <th>Manager</th>
                                     <th>Number of Employees</th>
                                     <th>Actions</th>
                                 </tr>
@@ -38,19 +37,18 @@
                                 <tr>
                                     <td>{{ department.name }}</td>
                                     <td>{{ department.description }}</td>
-                                    <td>{{ department.manager.first_name if department.manager else 'N/A' }} {{ department.manager.last_name if department.manager else '' }}</td>
                                     <td>{{ department.employees|length }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
                                             <a href="{{ url_for('view_department', department_id=department.id) }}" class="btn btn-sm btn-outline-primary" title="View Details"><i class="fas fa-eye"></i></a>
-                                            <a href="{{ url_for('edit_department', department_id=department.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fas fa-edit"></i></a>
-                                            <a href="{{ url_for('delete_department', department_id=department.id) }}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>
+                                            <a href="{{ url_for('edit_department', id=department.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fas fa-edit"></i></a>
+                                            <a href="{{ url_for('delete_department', id=department.id) }}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>
                                         </div>
                                     </td>
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="5" class="text-center">No departments found.</td>
+                                    <td colspan="4" class="text-center">No departments found.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

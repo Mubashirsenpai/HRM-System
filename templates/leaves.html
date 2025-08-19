@@ -27,10 +27,8 @@
                             <thead>
                                 <tr>
                                     <th>Employee</th>
-                                    <th>Leave Type</th>
                                     <th>Start Date</th>
                                     <th>End Date</th>
-                                    <th>Days</th>
                                     <th>Reason</th>
                                     <th>Status</th>
                                     <th>Requested On</th>
@@ -41,10 +39,8 @@
                                 {% for leave in leaves %}
                                 <tr>
                                     <td>{{ leave.employee.first_name }} {{ leave.employee.last_name }}</td>
-                                    <td>{{ leave.leave_type.capitalize() }}</td>
                                     <td>{{ leave.start_date.strftime('%Y-%m-%d') }}</td>
                                     <td>{{ leave.end_date.strftime('%Y-%m-%d') }}</td>
-                                    <td>{{ leave.days_requested }}</td>
                                     <td>{{ leave.reason }}</td>
                                     <td><span class="badge {% if leave.status == 'approved' %}bg-success{% elif leave.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">{{ leave.status.capitalize() }}</span></td>
                                     <td>{{ leave.created_at.strftime('%Y-%m-%d') }}</td>
@@ -58,7 +54,7 @@
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="9" class="text-center">No leave requests found.</td>
+                                    <td colspan="7" class="text-center">No leave requests found.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

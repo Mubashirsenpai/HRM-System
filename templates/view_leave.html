@@ -21,17 +21,11 @@
                         <dt class="col-sm-4">Employee:</dt>
                         <dd class="col-sm-8">{{ leave.employee.first_name }} {{ leave.employee.last_name }} ({{ leave.employee.employee_id }})</dd>
 
-                        <dt class="col-sm-4">Leave Type:</dt>
-                        <dd class="col-sm-8">{{ leave.leave_type.capitalize() }}</dd>
-
                         <dt class="col-sm-4">Start Date:</dt>
                         <dd class="col-sm-8">{{ leave.start_date.strftime('%Y-%m-%d') }}</dd>
 
                         <dt class="col-sm-4">End Date:</dt>
                         <dd class="col-sm-8">{{ leave.end_date.strftime('%Y-%m-%d') }}</dd>
-
-                        <dt class="col-sm-4">Days Requested:</dt>
-                        <dd class="col-sm-8">{{ leave.days_requested }}</dd>
 
                         <dt class="col-sm-4">Reason:</dt>
                         <dd class="col-sm-8">{{ leave.reason }}</dd>

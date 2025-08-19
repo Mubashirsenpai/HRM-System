@@ -17,7 +17,7 @@
                     <h5 class="card-title mb-0">Employee Details</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('edit_employee', employee_id=employee.id) }}">
+                    <form method="POST" action="{{ url_for('edit_employee', id=employee.id) }}">
                         <h6 class="mb-3">User Account Information</h6>
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>

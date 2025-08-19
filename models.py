@@ -2,7 +2,7 @@
 Database models for the HR Management System
 """
 
-from app import db
+from database import db
 from datetime import datetime
 
 class User(db.Model):
@@ -21,6 +21,7 @@ class Employee(db.Model):
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=True) # Added email column
+    phone = db.Column(db.String(20), nullable=True)
     department_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=True)
     position_id = db.Column(db.Integer, db.ForeignKey('position.id'), nullable=True)
     hire_date = db.Column(db.Date, nullable=False)
@@ -49,7 +50,12 @@ class Position(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.String(255), nullable=True)
+    department_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=True)
+    salary_range_min = db.Column(db.Float, nullable=True)
+    salary_range_max = db.Column(db.Float, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    department = db.relationship('Department', backref='positions', lazy=True)
 
     def __repr__(self):
         return f"<Position {self.title}>"
@@ -83,10 +89,15 @@ class Leave(db.Model):
 class Payroll(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
+    pay_period_start = db.Column(db.Date, nullable=False)
+    pay_period_end = db.Column(db.Date, nullable=False)
     pay_date = db.Column(db.Date, nullable=False)
-    gross_salary = db.Column(db.Float, nullable=False)
+    gross_salary = db.Column(db.Float, nullable=True) # Made nullable to accommodate initial creation without full calculation
+    overtime_pay = db.Column(db.Float, nullable=True)
+    bonus = db.Column(db.Float, nullable=True)
     deductions = db.Column(db.Float, nullable=True)
-    net_salary = db.Column(db.Float, nullable=False)
+    net_salary = db.Column(db.Float, nullable=True) # Made nullable
+    status = db.Column(db.String(20), nullable=True) # e.g., 'processed', 'pending'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):

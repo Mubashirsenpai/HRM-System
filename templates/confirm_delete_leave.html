@@ -17,7 +17,7 @@
                     <h5 class="card-title mb-0">Delete Leave Request for {{ leave.employee.first_name }} {{ leave.employee.last_name }}</h5>
                 </div>
                 <div class="card-body">
-                    <p class="card-text">Are you sure you want to delete this leave request (Type: <strong>{{ leave.leave_type.capitalize() }}</strong>, Dates: <strong>{{ leave.start_date.strftime('%Y-%m-%d') }} to {{ leave.end_date.strftime('%Y-%m-%d') }}</strong>) for <strong>{{ leave.employee.first_name }} {{ leave.employee.last_name }}</strong>?</p>
+                    <p class="card-text">Are you sure you want to delete this leave request (Dates: <strong>{{ leave.start_date.strftime('%Y-%m-%d') }} to {{ leave.end_date.strftime('%Y-%m-%d') }}</strong>) for <strong>{{ leave.employee.first_name }} {{ leave.employee.last_name }}</strong>?</p>
                     <p class="card-text text-danger"><strong>Warning: This action cannot be undone.</strong></p>
                     <form method="POST" action="{{ url_for('delete_leave', leave_id=leave.id) }}" class="mt-4">
                         <button type="submit" class="btn btn-danger">
