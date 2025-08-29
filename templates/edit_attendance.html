@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Attendance - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 mb-4">Edit Attendance Record</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Attendance Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.edit_attendance', attendance_id=attendance.id) }}">
+                        <div class="mb-3">
+                            <label for="employee_id" class="form-label">Employee</label>
+                            <select class="form-select" id="employee_id" name="employee_id" required>
+                                <option value="">Select Employee</option>
+                                {% for employee in employees %}
+                                <option value="{{ employee.id }}" {% if attendance.employee_id == employee.id %}selected{% endif %}>{{ employee.first_name }} {{ employee.last_name }} ({{ employee.employee_id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="date" name="date" value="{{ attendance.date.strftime('%Y-%m-%d') }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="check_in" class="form-label">Check-in Time</label>
+                            <input type="datetime-local" class="form-control" id="check_in" name="check_in" value="{{ attendance.check_in.strftime('%Y-%m-%dT%H:%M') if attendance.check_in else '' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="check_out" class="form-label">Check-out Time</label>
+                            <input type="datetime-local" class="form-control" id="check_out" name="check_out" value="{{ attendance.check_out.strftime('%Y-%m-%dT%H:%M') if attendance.check_out else '' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="present" {% if attendance.status == 'present' %}selected{% endif %}>Present</option>
+                                <option value="late" {% if attendance.status == 'late' %}selected{% endif %}>Late</option>
+                                <option value="absent" {% if attendance.status == 'absent' %}selected{% endif %}>Absent</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Record</button>
+                        <a href="{{ url_for('main.attendance') }}" class="btn btn-secondary ms-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

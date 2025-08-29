@@ -27,34 +27,24 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 
 # Import db from database.py
 from database import db
+from flask_migrate import Migrate
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database with app
 db.init_app(app)
 
-# Import models and routes
-# Ensure models.py and routes.py are in the same directory or correctly imported
+# Import models
 from models import (
     User, Employee, Department, Position, Attendance, Leave, Payroll
 )
-from routes import (
-    dashboard, employees, add_employee, edit_employee,
-    delete_employee, departments, add_department, view_department,
-    edit_department, delete_department, positions, add_position,
-    edit_position, delete_position, leave, add_leave,
-    edit_leave, delete_leave, view_leave,
-    attendance, add_attendance, edit_attendance,
-    delete_attendance, payroll, generate_payroll,
-    login, logout, bulk_upload_employees, sample_csv, sample_excel
-)
 
-# Create all database tables based on models.py
-# This will create tables in your PostgreSQL database
-with app.app_context():
-    db.create_all()
-    print("Database tables created in PostgreSQL.")
+# Import and register blueprint
+from routes import bp
+app.register_blueprint(bp)
+
+# Initialize Flask-Migrate
+migrate = Migrate(app, db)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
-

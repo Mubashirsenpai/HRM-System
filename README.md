@@ -34,22 +34,36 @@ A comprehensive, self-hosted HR management solution designed for organizations t
 
 ### Quick Start
 
-1. **Clone or extract the system**:
+1. **Clone the repository**:
    ```bash
-   cd HRM_system
+   git clone https://github.com/your-username/HRM-System.git
+   cd HRM-System
    ```
 
-2. **Install dependencies**:
+2. **Create and activate a virtual environment**:
+   *   On Windows:
+       ```bash
+       python -m venv venv
+       .\venv\Scripts\activate
+       ```
+   *   On macOS/Linux:
+       ```bash
+       python3 -m venv venv
+       source venv/bin/activate
+       ```
+
+3. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Initialize the database**:
+4. **Initialize the database and run the application**:
    ```bash
    python app.py
    ```
+   This command will create the `hrm_system.db` file if it doesn't exist and start the development server.
 
-4. **Access the system**:
+5. **Access the system**:
    - Open your browser and navigate to: `http://localhost:5000`
    - Default login credentials:
      - Username: `admin`

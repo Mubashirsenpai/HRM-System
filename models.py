@@ -19,17 +19,30 @@ class Employee(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     employee_id = db.Column(db.String(50), unique=True, nullable=False)
     first_name = db.Column(db.String(50), nullable=False)
+    middle_name = db.Column(db.String(50), nullable=True)
     last_name = db.Column(db.String(50), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=True) # Added email column
+    username = db.Column(db.String(80), unique=True, nullable=True)
+    email = db.Column(db.String(120), unique=True, nullable=True) # personal email
+    corporate_email = db.Column(db.String(120), unique=True, nullable=True)
     phone = db.Column(db.String(20), nullable=True)
+    qualification = db.Column(db.String(100), nullable=True)
+    job_title = db.Column(db.String(100), nullable=True)
+    branch_id = db.Column(db.Integer, db.ForeignKey('branch.id'), nullable=True)
     department_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=True)
     position_id = db.Column(db.Integer, db.ForeignKey('position.id'), nullable=True)
-    hire_date = db.Column(db.Date, nullable=False)
+    appointment_date = db.Column(db.Date, nullable=False)
+    address = db.Column(db.String(255), nullable=True)
+    marital_status = db.Column(db.String(20), nullable=True)  # Options: Married, Single, Others
+    date_of_birth = db.Column(db.Date, nullable=True)
+    image_path = db.Column(db.String(255), nullable=True)  # Path for the uploaded image
+    emergency_contact = db.Column(db.String(50), nullable=True)
     salary = db.Column(db.Float, nullable=False)
+    employment_type = db.Column(db.String(50), nullable=True)  # Added employment_type field
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    department = db.relationship('Department', backref='employees', lazy=True)
-    position = db.relationship('Position', backref='employees', lazy=True)
+    branch = db.relationship('Branch', back_populates='employees', lazy=True)
+    department = db.relationship('Department', back_populates='department_employees', lazy=True)
+    position = db.relationship('Position', back_populates='position_employees', lazy=True)
     attendance = db.relationship('Attendance', backref='employee', lazy=True)
     leaves = db.relationship('Leave', backref='employee', lazy=True)
     payroll = db.relationship('Payroll', backref='employee', lazy=True)
@@ -37,11 +50,25 @@ class Employee(db.Model):
     def __repr__(self):
         return f"<Employee {self.employee_id}>"
     
+class Branch(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    location = db.Column(db.String(255), nullable=True)
+    description = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    employees = db.relationship('Employee', back_populates='branch', lazy=True)
+    
+    def __repr__(self):
+        return f"<Branch {self.name}>"
+
 class Department(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    department_employees = db.relationship('Employee', back_populates='department', lazy=True)
     
     def __repr__(self):
         return f"<Department {self.name}>"
@@ -56,6 +83,7 @@ class Position(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     department = db.relationship('Department', backref='positions', lazy=True)
+    position_employees = db.relationship('Employee', back_populates='position', lazy=True)
 
     def __repr__(self):
         return f"<Position {self.title}>"

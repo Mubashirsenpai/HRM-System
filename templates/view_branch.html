@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}View Branch - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 mb-4">Branch Details: {{ branch.name }}</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Details</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Branch Name:</dt>
+                        <dd class="col-sm-8">{{ branch.name }}</dd>
+
+                        <dt class="col-sm-4">Location:</dt>
+                        <dd class="col-sm-8">{{ branch.location if branch.location else 'N/A' }}</dd>
+
+                        <dt class="col-sm-4">Description:</dt>
+                        <dd class="col-sm-8">{{ branch.description if branch.description else 'N/A' }}</dd>
+
+                        <dt class="col-sm-4">Number of Employees:</dt>
+                        <dd class="col-sm-8">{{ branch.employees|length }}</dd>
+
+                        <dt class="col-sm-4">Created At:</dt>
+                        <dd class="col-sm-8">{{ branch.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                    </dl>
+                    <div class="mt-4">
+                        <a href="{{ url_for('main.edit_branch', id=branch.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-edit me-2"></i>Edit Branch
+                        </a>
+                        <a href="{{ url_for('main.delete_branch', id=branch.id) }}" class="btn btn-danger ms-2">
+                            <i class="fas fa-trash me-2"></i>Delete Branch
+                        </a>
+                        <a href="{{ url_for('main.branches') }}" class="btn btn-light ms-2">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Branches
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

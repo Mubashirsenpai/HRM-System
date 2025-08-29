@@ -28,19 +28,25 @@
                         <dd class="col-sm-8">{{ position.department.name if position.department else 'N/A' }}</dd>
 
                         <dt class="col-sm-4">Salary Range:</dt>
-                        <dd class="col-sm-8">${{ "%.2f"|format(position.salary_range_min) }} - ${{ "%.2f"|format(position.salary_range_max) }}</dd>
+                        <dd class="col-sm-8">
+                            {% if position.salary_range_min is not none and position.salary_range_max is not none %}
+                                ${{ "%.2f"|format(position.salary_range_min) }} - ${{ "%.2f"|format(position.salary_range_max) }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </dd>
 
                         <dt class="col-sm-4">Created At:</dt>
                         <dd class="col-sm-8">{{ position.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
                     </dl>
                     <div class="mt-4">
-                        <a href="{{ url_for('edit_position', id=position.id) }}" class="btn btn-secondary">
+                        <a href="{{ url_for('main.edit_position', id=position.id) }}" class="btn btn-secondary">
                             <i class="fas fa-edit me-2"></i>Edit Position
                         </a>
-                        <a href="{{ url_for('delete_position', id=position.id) }}" class="btn btn-danger ms-2">
+                        <a href="{{ url_for('main.delete_position', id=position.id) }}" class="btn btn-danger ms-2">
                             <i class="fas fa-trash me-2"></i>Delete Position
                         </a>
-                        <a href="{{ url_for('positions') }}" class="btn btn-light ms-2">
+                        <a href="{{ url_for('main.positions') }}" class="btn btn-light ms-2">
                             <i class="fas fa-arrow-left me-2"></i>Back to Positions
                         </a>
                     </div>

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Branches - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="h2 mb-4">Branches</h1>
+    <a href="{{ url_for('main.add_branch') }}" class="btn btn-primary mb-3">Add New Branch</a>
+    {% if branches %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Location</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for branch in branches %}
+            <tr>
+                <td>{{ branch.name }}</td>
+                <td>{{ branch.location }}</td>
+                <td>{{ branch.description }}</td>
+                <td>
+                    <a href="{{ url_for('main.view_branch', id=branch.id) }}" class="btn btn-sm btn-outline-primary" title="View Details"><i class="fas fa-eye"></i></a>
+                    <a href="{{ url_for('main.edit_branch', id=branch.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fas fa-edit"></i></a>
+                    <a href="{{ url_for('main.delete_branch', id=branch.id) }}" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No branches found.</p>
+    {% endif %}
+</div>
+{% endblock %}

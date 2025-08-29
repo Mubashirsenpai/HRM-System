@@ -2,40 +2,43 @@
 Application routes for the HR Management System
 """
 
-from flask import render_template, request, redirect, url_for, flash, jsonify, session, send_file, make_response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, send_file, make_response
 from datetime import datetime, timedelta
-from app import app
 from database import db
 from models import *
 import os
 import csv
-import pandas as pd
+# import pandas as pd  # Commented out due to compatibility issues
 import io
 
+# Create a blueprint for all routes
+bp = Blueprint('main', __name__)
+
 # --- New Routes for Authentication ---
-@app.route('/login', methods=['GET', 'POST'])
+@bp.route('/login', methods=['GET', 'POST'])
 def login():
     """Placeholder login route"""
     # For now, we will just redirect to the dashboard.
     # In a real application, you would handle user authentication here.
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('main.dashboard'))
 
-@app.route('/logout')
+@bp.route('/logout')
 def logout():
     """Logout route to clear the session"""
     # In a real application, you might use flask-login to handle this.
     # Here, we'll just clear the session and redirect to login or dashboard.
     session.clear()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('main.dashboard'))
 # --- End of New Routes ---
 
 
-@app.route('/')
+@bp.route('/')
 def dashboard():
     """Main dashboard with system overview"""
     total_employees = Employee.query.count()
     total_departments = Department.query.count()
+    total_branches = Branch.query.count()
     pending_leaves = Leave.query.filter_by(status='pending').count()
     
     # Get recent attendance count for today
@@ -43,9 +46,10 @@ def dashboard():
     recent_attendance = Attendance.query.filter(Attendance.date == today_date).count()
 
     # Fetch recent activities from different models
-    recent_employees = Employee.query.order_by(Employee.hire_date.desc()).limit(3).all()
+    recent_employees = Employee.query.order_by(Employee.appointment_date.desc()).limit(3).all()
     recent_leaves = Leave.query.order_by(Leave.created_at.desc()).limit(3).all()
     recent_departments = Department.query.order_by(Department.created_at.desc()).limit(3).all()
+    recent_branches = Branch.query.order_by(Branch.created_at.desc()).limit(3).all()
     
     # Combine and sort all recent activities by their creation/hire date
     all_recent_activities = []
@@ -54,7 +58,7 @@ def dashboard():
         all_recent_activities.append({
             'type': 'employee_hired',
             # Convert date object to datetime object for consistent sorting
-            'timestamp': datetime.combine(emp.hire_date, datetime.min.time()),
+            'timestamp': datetime.combine(emp.appointment_date, datetime.min.time()) if emp.appointment_date else datetime.now(),
             'id': emp.id,
             'name': f"{emp.first_name} {emp.last_name}"
         })
@@ -75,70 +79,120 @@ def dashboard():
             'id': dept.id,
             'name': dept.name
         })
+        
+    for branch in recent_branches:
+        all_recent_activities.append({
+            'type': 'new_branch',
+            'timestamp': branch.created_at,
+            'id': branch.id,
+            'name': branch.name
+        })
     
     all_recent_activities.sort(key=lambda x: x['timestamp'], reverse=True)
 
     return render_template('dashboard.html', 
                             total_employees=total_employees,
                             total_departments=total_departments,
+                            total_branches=total_branches,
                             pending_leaves=pending_leaves,
                             recent_attendance=recent_attendance,
                             all_recent_activities=all_recent_activities)
 
 # --- Employee Management Routes ---
-@app.route('/employees')
+@bp.route('/employees')
 def employees():
     """Display all employees"""
     employees = Employee.query.all()
     return render_template('employees.html', employees=employees)
 
-@app.route('/employees/add', methods=['GET', 'POST'])
+@bp.route('/employees/add', methods=['GET', 'POST'])
 def add_employee():
     """Add a new employee"""
     departments = Department.query.all()
     positions = Position.query.all()
+    branches = Branch.query.all()
     if request.method == 'POST':
         try:
+            # Personal Information
             employee_id = request.form.get('employee_id')
             first_name = request.form.get('first_name')
+            middle_name = request.form.get('middle_name')
             last_name = request.form.get('last_name')
-            email = request.form.get('email')
+            email = request.form.get('email')  # Personal email
+            corporate_email = request.form.get('corporate_email')
+            phone = request.form.get('phone')
+            address = request.form.get('address')
+            marital_status = request.form.get('marital_status')
+            date_of_birth_str = request.form.get('date_of_birth')
+            emergency_contact = request.form.get('emergency_contact')
+            
+            # Employment Information
+            username = request.form.get('username')
+            qualification = request.form.get('qualification')
+            job_title = request.form.get('job_title')
+            appointment_name = request.form.get('appointment_name')
             department_id = request.form.get('department_id')
             position_id = request.form.get('position_id')
-            hire_date_str = request.form.get('hire_date')
+            branch_id = request.form.get('branch_id')
+            appointment_date_str = request.form.get('appointment_date')
             salary = request.form.get('salary')
-
-            if not all([employee_id, first_name, last_name, email, phone, department_id, position_id, hire_date_str, salary]):
-                flash('All fields are required.', 'danger')
-                return redirect(url_for('add_employee'))
+            employment_type = request.form.get('employment_type')
             
-            hire_date = datetime.strptime(hire_date_str, '%Y-%m-%d').date()
-            phone = request.form.get('phone')
+            # Handle image upload
+            image_path = None
+            if 'image' in request.files:
+                image = request.files['image']
+                if image.filename != '':
+                    # Save the image to a static directory
+                    image_path = os.path.join('static', 'images', image.filename)
+                    image.save(image_path)
+                    # Store the relative path in the database
+                    image_path = os.path.join('static', 'images', image.filename)
+
+            if not all([employee_id, first_name, last_name, department_id, position_id, appointment_date_str, salary]):
+                flash('Required fields are missing.', 'danger')
+                return redirect(url_for('main.add_employee'))
+            
+            appointment_date = datetime.strptime(appointment_date_str, '%Y-%m-%d').date()
+            date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date() if date_of_birth_str else None
             
             new_employee = Employee(
                 employee_id=employee_id,
                 first_name=first_name,
+                middle_name=middle_name,
                 last_name=last_name,
+                username=username,
                 email=email,
+                corporate_email=corporate_email,
                 phone=phone,
+                qualification=qualification,
+                job_title=job_title,
+                appointment_name=appointment_name,
                 department_id=department_id,
                 position_id=position_id,
-                hire_date=hire_date,
-                salary=float(salary)
+                branch_id=branch_id,
+                appointment_date=appointment_date,
+                salary=float(salary),
+                address=address,
+                marital_status=marital_status,
+                date_of_birth=date_of_birth,
+                image_path=image_path,
+                emergency_contact=emergency_contact,
+                employment_type=employment_type
             )
             
             db.session.add(new_employee)
             db.session.commit()
             
             flash('Employee added successfully!', 'success')
-            return redirect(url_for('employees'))
+            return redirect(url_for('main.employees'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error adding employee: {e}', 'danger')
 
-    return render_template('add_employee.html', departments=departments, positions=positions)
+    return render_template('add_employee.html', departments=departments, positions=positions, branches=branches)
 
-@app.route('/employees/edit/<int:id>', methods=['GET', 'POST'])
+@bp.route('/employees/edit/<int:id>', methods=['GET', 'POST'])
 def edit_employee(id):
     """Edit an existing employee"""
     employee = Employee.query.get_or_404(id)
@@ -153,18 +207,85 @@ def edit_employee(id):
             employee.department_id = request.form.get('department_id')
             employee.position_id = request.form.get('position_id')
             employee.phone = request.form.get('phone')
-            employee.hire_date = datetime.strptime(request.form.get('hire_date'), '%Y-%m-%d').date()
+            employee.appointment_date = datetime.strptime(request.form.get('appointment_date'), '%Y-%m-%d').date()
             employee.salary = float(request.form.get('salary'))
             db.session.commit()
             flash('Employee updated successfully!', 'success')
-            return redirect(url_for('employees'))
+            return redirect(url_for('main.employees'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating employee: {e}', 'danger')
 
     return render_template('edit_employee.html', employee=employee, departments=departments, positions=positions)
 
-@app.route('/employees/delete/<int:id>', methods=['POST', 'GET'])
+from flask import send_file
+from fpdf import FPDF
+
+@bp.route('/employees/view/<int:id>', methods=['GET'])
+def view_employee(id):
+    """View details of a single employee"""
+    employee = Employee.query.get_or_404(id)
+    return render_template('view_employee.html', employee=employee)
+
+@bp.route('/employees/pdf/<int:id>')
+def employee_pdf(id):
+    """Generate and serve employee details as PDF"""
+    try:
+        employee = Employee.query.get_or_404(id)
+        
+        # Create PDF
+        pdf = FPDF()
+        pdf.add_page()
+        
+        # Set font
+        pdf.set_font("Arial", 'B', 16)
+        
+        # Title
+        pdf.cell(200, 10, f"Employee Details: {employee.first_name} {employee.last_name}", 0, 1, 'C')
+        pdf.ln(10)
+        
+        # Set font for content
+        pdf.set_font("Arial", '', 12)
+        
+        # Employee details
+        details = [
+            f"Employee ID: {employee.employee_id}",
+            f"Full Name: {employee.first_name} {employee.middle_name if employee.middle_name else ''} {employee.last_name}",
+            f"Personal Email: {employee.email if employee.email else 'N/A'}",
+            f"Corporate Email: {employee.corporate_email if employee.corporate_email else 'N/A'}",
+            f"Username: {employee.username if employee.username else 'N/A'}",
+            f"Phone: {employee.phone if employee.phone else 'N/A'}",
+            f"Department: {employee.department.name if employee.department else 'N/A'}",
+            f"Position: {employee.position.title if employee.position else 'N/A'}",
+            f"Job Title: {employee.job_title if employee.job_title else 'N/A'}",
+            f"Qualification: {employee.qualification if employee.qualification else 'N/A'}",
+            f"Appointment Name: {employee.appointment_name if employee.appointment_name else 'N/A'}",
+            f"Appointment Date: {employee.appointment_date.strftime('%Y-%m-%d')}",
+            f"Address: {employee.address if employee.address else 'N/A'}",
+            f"Marital Status: {employee.marital_status if employee.marital_status else 'N/A'}",
+            f"Date of Birth: {employee.date_of_birth.strftime('%Y-%m-%d') if employee.date_of_birth else 'N/A'}",
+            f"Emergency Contact: {employee.emergency_contact if employee.emergency_contact else 'N/A'}",
+            f"Salary: ${employee.salary:.2f}",
+            f"Employment Type: {employee.employment_type.capitalize() if employee.employment_type else 'N/A'}",
+            f"Created At: {employee.created_at.strftime('%Y-%m-%d %H:%M')}"
+        ]
+        
+        for detail in details:
+            pdf.cell(200, 10, detail, 0, 1)
+            pdf.ln(2)
+        
+        # Create response
+        response = make_response(pdf.output(dest='S').encode('latin1'))
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=employee_{employee.employee_id}_details.pdf'
+        
+        return response
+        
+    except Exception as e:
+        flash(f'Error generating PDF: {e}', 'danger')
+        return redirect(url_for('main.view_employee', id=id))
+
+@bp.route('/employees/delete/<int:id>', methods=['POST', 'GET'])
 def delete_employee(id):
     """Delete an employee"""
     employee = Employee.query.get_or_404(id)
@@ -173,22 +294,22 @@ def delete_employee(id):
             db.session.delete(employee)
             db.session.commit()
             flash('Employee deleted successfully!', 'success')
-            return redirect(url_for('employees'))
+            return redirect(url_for('main.employees'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error deleting employee: {e}', 'danger')
     
     # Render a confirmation page for GET requests
-        return render_template('confirm_delete_employee.html', employee=employee)
+    return render_template('confirm_delete_employee.html', employee=employee)
     
 # --- Bulk Employee Upload Routes ---
-@app.route('/employees/sample_csv')
+@bp.route('/employees/sample_csv')
 def sample_csv():
     """Provide a sample CSV template for bulk employee upload"""
     # Create a sample CSV in memory
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['employee_id', 'first_name', 'last_name', 'email', 'phone', 'hire_date', 'department_id', 'position_id', 'salary'])
+    writer.writerow(['employee_id', 'first_name', 'last_name', 'email', 'phone', 'appointment_date', 'department_id', 'position_id', 'salary'])
     writer.writerow(['EMP001', 'John', 'Doe', 'john.doe@example.com', '123-456-7890', '2023-01-15', '1', '1', '50000.00'])
     
     # Create response
@@ -197,36 +318,15 @@ def sample_csv():
     response.headers['Content-Disposition'] = 'attachment; filename=sample_employees.csv'
     return response
 
-@app.route('/employees/sample_excel')
+@bp.route('/employees/sample_excel')
 def sample_excel():
     """Provide a sample Excel template for bulk employee upload"""
-    # Create a sample DataFrame
-    data = {
-        'employee_id': ['EMP001'],
-        'first_name': ['John'],
-        'last_name': ['Doe'],
-        'email': ['john.doe@example.com'],
-        'phone': ['123-456-7890'],
-        'hire_date': ['2023-01-15'],
-        'department_id': ['1'],
-        'position_id': ['1'],
-        'salary': ['50000.00']
-    }
-    df = pd.DataFrame(data)
-    
-    # Create Excel file in memory
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        df.to_excel(writer, index=False, sheet_name='Employees')
-    output.seek(0)
-    
-    # Create response
-    response = make_response(output.read())
-    response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    response.headers['Content-Disposition'] = 'attachment; filename=sample_employees.xlsx'
-    return response
+    # Create a simple CSV alternative since Excel support is disabled
+    # due to pandas/numpy compatibility issues
+    flash('Excel template generation is temporarily disabled due to compatibility issues. Please use the CSV template instead.', 'warning')
+    return redirect(url_for('main.sample_csv'))
 
-@app.route('/employees/bulk_upload', methods=['GET', 'POST'])
+@bp.route('/employees/bulk_upload', methods=['GET', 'POST'])
 def bulk_upload_employees():
     """Handle bulk upload of employees from CSV or Excel files"""
     if request.method == 'POST':
@@ -253,9 +353,9 @@ def bulk_upload_employees():
                 reader = csv.DictReader(stream)
                 employees_data = list(reader)
             else:
-                # Process Excel file
-                df = pd.read_excel(file)
-                employees_data = df.to_dict('records')
+                # Process Excel file - disabled due to pandas/numpy compatibility issues
+                flash('Excel file processing is temporarily disabled. Please use CSV files for bulk upload.', 'danger')
+                return redirect(url_for('main.bulk_upload_employees'))
             
             # Process each employee record
             success_count = 0
@@ -265,7 +365,7 @@ def bulk_upload_employees():
             for i, row in enumerate(employees_data):
                 try:
                     # Validate required fields
-                    required_fields = ['employee_id', 'first_name', 'last_name', 'email', 'phone', 'hire_date', 'department_id', 'position_id', 'salary']
+                    required_fields = ['employee_id', 'first_name', 'last_name', 'email', 'phone', 'appointment_date', 'department_id', 'position_id', 'salary']
                     missing_fields = [field for field in required_fields if not row.get(field)]
                     if missing_fields:
                         errors.append(f"Row {i+1}: Missing required fields: {', '.join(missing_fields)}")
@@ -341,19 +441,82 @@ def bulk_upload_employees():
             db.session.rollback()
             flash(f'Error processing file: {str(e)}', 'danger')
         
-        return redirect(url_for('employees'))
+        return redirect(url_for('main.employees'))
     
     return render_template('bulk_upload_employees.html')
 
 
+# --- Branch Management Routes ---
+@bp.route('/branches')
+def branches():
+    """Display all branches"""
+    branches = Branch.query.all()
+    return render_template('branches.html', branches=branches)
+
+@bp.route('/branches/add', methods=['GET', 'POST'])
+def add_branch():
+    """Add a new branch"""
+    if request.method == 'POST':
+        try:
+            name = request.form.get('name')
+            location = request.form.get('location')
+            description = request.form.get('description')
+            new_branch = Branch(name=name, location=location, description=description)
+            db.session.add(new_branch)
+            db.session.commit()
+            flash('Branch added successfully!', 'success')
+            return redirect(url_for('main.branches'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding branch: {e}', 'danger')
+    return render_template('add_branch.html')
+
+@bp.route('/branches/view/<int:id>')
+def view_branch(id):
+    """View details of a single branch"""
+    branch = Branch.query.get_or_404(id)
+    return render_template('view_branch.html', branch=branch)
+
+@bp.route('/branches/edit/<int:id>', methods=['GET', 'POST'])
+def edit_branch(id):
+    """Edit an existing branch"""
+    branch = Branch.query.get_or_404(id)
+    if request.method == 'POST':
+        try:
+            branch.name = request.form.get('name')
+            branch.location = request.form.get('location')
+            branch.description = request.form.get('description')
+            db.session.commit()
+            flash('Branch updated successfully!', 'success')
+            return redirect(url_for('main.branches'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating branch: {e}', 'danger')
+    return render_template('edit_branch.html', branch=branch)
+
+@bp.route('/branches/delete/<int:id>', methods=['POST', 'GET'])
+def delete_branch(id):
+    """Delete a branch"""
+    branch = Branch.query.get_or_404(id)
+    if request.method == 'POST':
+        try:
+            db.session.delete(branch)
+            db.session.commit()
+            flash('Branch deleted successfully!', 'success')
+            return redirect(url_for('main.branches'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error deleting branch: {e}', 'danger')
+    return render_template('confirm_delete_branch.html', branch=branch)
+
 # --- Department Management Routes ---
-@app.route('/departments')
+@bp.route('/departments')
 def departments():
     """Display all departments"""
     departments = Department.query.all()
     return render_template('departments.html', departments=departments)
 
-@app.route('/departments/add', methods=['GET', 'POST'])
+@bp.route('/departments/add', methods=['GET', 'POST'])
 def add_department():
     """Add a new department"""
     if request.method == 'POST':
@@ -364,13 +527,13 @@ def add_department():
             db.session.add(new_department)
             db.session.commit()
             flash('Department added successfully!', 'success')
-            return redirect(url_for('departments'))
+            return redirect(url_for('main.departments'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error adding department: {e}', 'danger')
     return render_template('add_department.html')
 
-@app.route('/departments/edit/<int:id>', methods=['GET', 'POST'])
+@bp.route('/departments/edit/<int:id>', methods=['GET', 'POST'])
 def edit_department(id):
     """Edit an existing department"""
     department = Department.query.get_or_404(id)
@@ -380,13 +543,13 @@ def edit_department(id):
             department.description = request.form.get('description')
             db.session.commit()
             flash('Department updated successfully!', 'success')
-            return redirect(url_for('departments'))
+            return redirect(url_for('main.departments'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating department: {e}', 'danger')
     return render_template('edit_department.html', department=department)
 
-@app.route('/departments/delete/<int:id>', methods=['POST', 'GET'])
+@bp.route('/departments/delete/<int:id>', methods=['POST', 'GET'])
 def delete_department(id):
     """Delete a department"""
     department = Department.query.get_or_404(id)
@@ -395,14 +558,14 @@ def delete_department(id):
             db.session.delete(department)
             db.session.commit()
             flash('Department deleted successfully!', 'success')
-            return redirect(url_for('departments'))
+            return redirect(url_for('main.departments'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error deleting department: {e}', 'danger')
     return render_template('confirm_delete_department.html', department=department)
 
 
-@app.route('/departments/view/<int:department_id>')
+@bp.route('/departments/view/<int:department_id>')
 def view_department(department_id):
     """View details of a single department"""
     department = Department.query.get_or_404(department_id)
@@ -410,19 +573,19 @@ def view_department(department_id):
 
 
 # --- Position Management Routes ---
-@app.route('/positions')
+@bp.route('/positions')
 def positions():
     """Display all positions"""
     positions = Position.query.all()
     return render_template('positions.html', positions=positions)
 
-@app.route('/positions/view/<int:id>')
+@bp.route('/positions/view/<int:id>')
 def view_position(id):
     """View details of a single position"""
     position = Position.query.get_or_404(id)
     return render_template('view_position.html', position=position)
 
-@app.route('/positions/add', methods=['GET', 'POST'])
+@bp.route('/positions/add', methods=['GET', 'POST'])
 def add_position():
     """Add a new position"""
     departments = Department.query.all()
@@ -444,13 +607,13 @@ def add_position():
             db.session.add(new_position)
             db.session.commit()
             flash('Position added successfully!', 'success')
-            return redirect(url_for('positions'))
+            return redirect(url_for('main.positions'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error adding position: {e}', 'danger')
     return render_template('add_position.html', departments=departments)
 
-@app.route('/positions/edit/<int:id>', methods=['GET', 'POST'])
+@bp.route('/positions/edit/<int:id>', methods=['GET', 'POST'])
 def edit_position(id):
     """Edit an existing position"""
     position = Position.query.get_or_404(id)
@@ -464,13 +627,13 @@ def edit_position(id):
             position.salary_range_max = float(request.form.get('salary_range_max')) if request.form.get('salary_range_max') else None
             db.session.commit()
             flash('Position updated successfully!', 'success')
-            return redirect(url_for('positions'))
+            return redirect(url_for('main.positions'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating position: {e}', 'danger')
     return render_template('edit_position.html', position=position, departments=departments)
 
-@app.route('/positions/delete/<int:id>', methods=['POST', 'GET'])
+@bp.route('/positions/delete/<int:id>', methods=['POST', 'GET'])
 def delete_position(id):
     """Delete a position"""
     position = Position.query.get_or_404(id)
@@ -479,7 +642,7 @@ def delete_position(id):
             db.session.delete(position)
             db.session.commit()
             flash('Position deleted successfully!', 'success')
-            return redirect(url_for('positions'))
+            return redirect(url_for('main.positions'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error deleting position: {e}', 'danger')
@@ -487,7 +650,7 @@ def delete_position(id):
 
 
 # --- Leave Management Routes ---
-@app.route('/leave')
+@bp.route('/leave')
 def leave():
     """Display all leave requests"""
     leave_requests = Leave.query.all()
@@ -495,7 +658,7 @@ def leave():
     # pass the data with that key.
     return render_template('leaves.html', leaves=leave_requests)
 
-@app.route('/leave/add', methods=['GET', 'POST'])
+@bp.route('/leave/add', methods=['GET', 'POST'])
 def add_leave():
     """Add a new leave request"""
     employees = Employee.query.all()
@@ -516,13 +679,13 @@ def add_leave():
             db.session.add(new_leave)
             db.session.commit()
             flash('Leave request submitted successfully!', 'success')
-            return redirect(url_for('leave'))
+            return redirect(url_for('main.leave'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error submitting leave request: {e}', 'danger')
     return render_template('add_leave.html', employees=employees)
 
-@app.route('/leave/edit/<int:leave_id>', methods=['GET', 'POST'])
+@bp.route('/leave/edit/<int:leave_id>', methods=['GET', 'POST'])
 def edit_leave(leave_id):
     """Edit an existing leave request"""
     leave_request = Leave.query.get_or_404(leave_id)
@@ -536,13 +699,13 @@ def edit_leave(leave_id):
             leave_request.status = request.form.get('status')
             db.session.commit()
             flash('Leave request updated successfully!', 'success')
-            return redirect(url_for('leave'))
+            return redirect(url_for('main.leave'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating leave request: {e}', 'danger')
     return render_template('edit_leave.html', leave_request=leave_request, employees=employees)
 
-@app.route('/leave/delete/<int:leave_id>', methods=['POST', 'GET'])
+@bp.route('/leave/delete/<int:leave_id>', methods=['POST', 'GET'])
 def delete_leave(leave_id):
     """Delete a leave request"""
     leave_request = Leave.query.get_or_404(leave_id)
@@ -551,13 +714,13 @@ def delete_leave(leave_id):
             db.session.delete(leave_request)
             db.session.commit()
             flash('Leave request deleted successfully!', 'success')
-            return redirect(url_for('leave'))
+            return redirect(url_for('main.leave'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error deleting leave request: {e}', 'danger')
     return render_template('confirm_delete_leave.html', leave_request=leave_request)
 
-@app.route('/leave/view/<int:leave_id>')
+@bp.route('/leave/view/<int:leave_id>')
 def view_leave(leave_id):
     """View details of a single leave request"""
     leave_request = Leave.query.get_or_404(leave_id)
@@ -565,13 +728,13 @@ def view_leave(leave_id):
 
 
 # --- Attendance Management Routes ---
-@app.route('/attendance')
+@bp.route('/attendance')
 def attendance():
     """Display all attendance records"""
     attendance_records = Attendance.query.all()
     return render_template('attendance.html', attendance_records=attendance_records)
 
-@app.route('/attendance/add', methods=['GET', 'POST'])
+@bp.route('/attendance/add', methods=['GET', 'POST'])
 def add_attendance():
     """Add a new attendance record"""
     employees = Employee.query.all()
@@ -597,13 +760,13 @@ def add_attendance():
             db.session.add(new_attendance)
             db.session.commit()
             flash('Attendance record added successfully!', 'success')
-            return redirect(url_for('attendance'))
+            return redirect(url_for('main.attendance'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error adding attendance record: {e}', 'danger')
     return render_template('add_attendance.html', employees=employees)
 
-@app.route('/attendance/edit/<int:id>', methods=['GET', 'POST'])
+@bp.route('/attendance/edit/<int:id>', methods=['GET', 'POST'])
 def edit_attendance(id):
     """Edit an existing attendance record"""
     attendance = Attendance.query.get_or_404(id)
@@ -617,13 +780,13 @@ def edit_attendance(id):
             attendance.status = request.form.get('status')
             db.session.commit()
             flash('Attendance record updated successfully!', 'success')
-            return redirect(url_for('attendance'))
+            return redirect(url_for('main.attendance'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating attendance record: {e}', 'danger')
     return render_template('edit_attendance.html', attendance=attendance, employees=employees)
 
-@app.route('/attendance/delete/<int:id>', methods=['POST', 'GET'])
+@bp.route('/attendance/delete/<int:id>', methods=['POST', 'GET'])
 def delete_attendance(id):
     """Delete an attendance record"""
     attendance = Attendance.query.get_or_404(id)
@@ -632,7 +795,7 @@ def delete_attendance(id):
             db.session.delete(attendance)
             db.session.commit()
             flash('Attendance record deleted successfully!', 'success')
-            return redirect(url_for('attendance'))
+            return redirect(url_for('main.attendance'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error deleting attendance record: {e}', 'danger')
@@ -640,7 +803,7 @@ def delete_attendance(id):
 
 
 # --- Payroll Management Routes ---
-@app.route('/payroll')
+@bp.route('/payroll')
 def payroll():
     """Display all payroll records and employees for the generation modal"""
     payroll_records = Payroll.query.all()
@@ -648,7 +811,7 @@ def payroll():
     return render_template('payroll.html', payroll_records=payroll_records, employees=employees)
 
 
-@app.route('/payroll/generate', methods=['POST'])
+@bp.route('/payroll/generate', methods=['POST'])
 def generate_payroll():
     """Generate a new payroll record based on a time period"""
     try:
@@ -659,7 +822,7 @@ def generate_payroll():
         employee = Employee.query.get(employee_id)
         if not employee:
             flash('Employee not found.', 'danger')
-            return redirect(url_for('payroll'))
+            return redirect(url_for('main.payroll'))
 
         pay_period_start = datetime.strptime(pay_period_start_str, '%Y-%m-%d').date()
         pay_period_end = datetime.strptime(pay_period_end_str, '%Y-%m-%d').date()
@@ -696,9 +859,9 @@ def generate_payroll():
         db.session.rollback()
         flash(f'Error generating payroll: {e}', 'danger')
 
-    return redirect(url_for('payroll'))
+    return redirect(url_for('main.payroll'))
 
-@app.route('/payroll/edit/<int:id>', methods=['GET', 'POST'])
+@bp.route('/payroll/edit/<int:id>', methods=['GET', 'POST'])
 def edit_payroll(id):
     """Edit an existing payroll record"""
     payroll = Payroll.query.get_or_404(id)
@@ -712,13 +875,13 @@ def edit_payroll(id):
             payroll.net_salary = float(request.form.get('net_salary'))
             db.session.commit()
             flash('Payroll record updated successfully!', 'success')
-            return redirect(url_for('payroll'))
+            return redirect(url_for('main.payroll'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error updating payroll record: {e}', 'danger')
     return render_template('edit_payroll.html', payroll=payroll, employees=employees)
 
-@app.route('/payroll/delete/<int:id>', methods=['POST', 'GET'])
+@bp.route('/payroll/delete/<int:id>', methods=['POST', 'GET'])
 def delete_payroll(id):
     """Delete a payroll record"""
     payroll = Payroll.query.get_or_404(id)
@@ -727,15 +890,21 @@ def delete_payroll(id):
             db.session.delete(payroll)
             db.session.commit()
             flash('Payroll record deleted successfully!', 'success')
-            return redirect(url_for('payroll'))
+            return redirect(url_for('main.payroll'))
         except Exception as e:
             db.session.rollback()
             flash(f'Error deleting payroll record: {e}', 'danger')
     return render_template('confirm_delete_payroll.html', payroll=payroll)
 
+@bp.route('/payroll/view/<int:id>')
+def view_payroll(id):
+    """View details of a single payroll record"""
+    payroll = Payroll.query.get_or_404(id)
+    return render_template('view_payroll.html', payroll=payroll)
+
 
 # --- API Endpoints ---
-@app.route('/api/employees')
+@bp.route('/api/employees')
 def api_employees():
     """Get employees list as JSON"""
     employees = Employee.query.all()
@@ -752,7 +921,7 @@ def api_employees():
         } for e in employees
     ])
 
-@app.route('/api/departments')
+@bp.route('/api/departments')
 def api_departments():
     """Get departments list as JSON"""
     departments = Department.query.all()
@@ -765,7 +934,7 @@ def api_departments():
         } for d in departments
     ])
 
-@app.route('/api/positions')
+@bp.route('/api/positions')
 def api_positions():
     """Get positions list as JSON"""
     positions = Position.query.all()
@@ -781,7 +950,7 @@ def api_positions():
         } for p in positions
     ])
 
-@app.route('/api/attendance')
+@bp.route('/api/attendance')
 def api_attendance():
     """Get attendance records as JSON"""
     attendance_records = Attendance.query.all()
@@ -796,7 +965,7 @@ def api_attendance():
         } for a in attendance_records
     ])
 
-@app.route('/api/leave')
+@bp.route('/api/leave')
 def api_leave():
     """Get leave requests as JSON"""
     leave_requests = Leave.query.all()
@@ -811,7 +980,7 @@ def api_leave():
         } for l in leave_requests
     ])
 
-@app.route('/api/payroll')
+@bp.route('/api/payroll')
 def api_payroll():
     """Get payroll records as JSON"""
     payroll_records = Payroll.query.all()

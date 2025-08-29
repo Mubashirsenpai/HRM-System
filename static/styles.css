@@ -1,8 +1,8 @@
-/* General Body Styling */
-body {
-    font-family: 'Inter', sans-serif; /* Using Inter font for a modern look */
-    background-color: #F0F4F8; /* Light grey/off-white background */
-    color: #333333; /* Dark grey for general text */
+/* Existing styles */
+
+/* Add border radius to the logo */
+img {
+    border-radius: 10px; /* Adjust the value as needed */
 }
 
 /* Sidebar Styling */

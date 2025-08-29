@@ -18,43 +18,48 @@
             <h4 class="text-white mb-3">HRMS</h4> <!-- Reduced margin -->
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                    <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">
                         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'employees' or request.endpoint == 'add_employee' %}active{% endif %}" href="{{ url_for('employees') }}">
+                    <a class="nav-link {% if request.endpoint == 'main.employees' or request.endpoint == 'main.add_employee' %}active{% endif %}" href="{{ url_for('main.employees') }}">
                         <i class="fas fa-users me-2"></i>Employees
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'departments' or request.endpoint == 'add_department' %}active{% endif %}" href="{{ url_for('departments') }}">
+                    <a class="nav-link {% if request.endpoint == 'main.departments' or request.endpoint == 'main.add_department' %}active{% endif %}" href="{{ url_for('main.departments') }}">
                         <i class="fas fa-building me-2"></i>Departments
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'positions' or request.endpoint == 'add_position' %}active{% endif %}" href="{{ url_for('positions') }}">
+                    <a class="nav-link {% if request.endpoint == 'main.positions' or request.endpoint == 'main.add_position' %}active{% endif %}" href="{{ url_for('main.positions') }}">
                         <i class="fas fa-briefcase me-2"></i>Positions
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'main.branches' or request.endpoint == 'main.add_branch' %}active{% endif %}" href="{{ url_for('main.branches') }}">
+                        <i class="fas fa-code-branch me-2"></i>Branches
+                    </a>
+                </li>
+                <li class="nav-item">
                     <!-- Corrected line: 'leaves' was changed to 'leave' -->
-                    <a class="nav-link {% if request.endpoint == 'leave' or request.endpoint == 'add_leave' %}active{% endif %}" href="{{ url_for('leave') }}">
+                    <a class="nav-link {% if request.endpoint == 'main.leave' or request.endpoint == 'main.add_leave' %}active{% endif %}" href="{{ url_for('main.leave') }}">
                         <i class="fas fa-calendar-alt me-2"></i>Leave Management
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'attendance' or request.endpoint == 'add_attendance' %}active{% endif %}" href="{{ url_for('attendance') }}">
+                    <a class="nav-link {% if request.endpoint == 'main.attendance' or request.endpoint == 'main.add_attendance' %}active{% endif %}" href="{{ url_for('main.attendance') }}">
                         <i class="fas fa-clock me-2"></i>Attendance
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint == 'payroll' or request.endpoint == 'generate_payroll' %}active{% endif %}" href="{{ url_for('payroll') }}">
+                    <a class="nav-link {% if request.endpoint == 'main.payroll' or request.endpoint == 'main.generate_payroll' %}active{% endif %}" href="{{ url_for('main.payroll') }}">
                         <i class="fas fa-money-bill-wave me-2"></i>Payroll
                     </a>
                 </li>
                 <li class="nav-item mt-auto">
-                    <a class="nav-link" href="{{ url_for('logout') }}">
+                    <a class="nav-link" href="{{ url_for('main.logout') }}">
                         <i class="fas fa-sign-out-alt me-2"></i>Logout
                     </a>
                 </li>

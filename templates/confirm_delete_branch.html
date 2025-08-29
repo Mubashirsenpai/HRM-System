@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Branch - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 mb-4">Delete Branch</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Confirm Deletion</h5>
+                </div>
+                <div class="card-body">
+                    <p>Are you sure you want to delete the branch <strong>{{ branch.name }}</strong> located at <strong>{{ branch.location }}</strong>?</p>
+                    <p class="text-danger">Warning: This action cannot be undone.</p>
+                    
+                    <form method="POST" action="{{ url_for('main.delete_branch', id=branch.id) }}">
+                        <button type="submit" class="btn btn-danger">Yes, Delete Branch</button>
+                        <a href="{{ url_for('main.branches') }}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

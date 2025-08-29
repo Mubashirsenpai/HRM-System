@@ -17,7 +17,7 @@
                     <h5 class="card-title mb-0">Attendance Details</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('add_attendance') }}">
+                    <form method="POST" action="{{ url_for('main.add_attendance') }}">
                         <div class="mb-3">
                             <label for="employee_id" class="form-label">Employee</label>
                             <select class="form-select" id="employee_id" name="employee_id" required>
@@ -40,7 +40,7 @@
                             <input type="datetime-local" class="form-control" id="check_out" name="check_out">
                         </div>
                         <button type="submit" class="btn btn-primary">Add Record</button>
-                        <a href="{{ url_for('attendance') }}" class="btn btn-secondary ms-2">Cancel</a>
+                        <a href="{{ url_for('main.attendance') }}" class="btn btn-secondary ms-2">Cancel</a>
                     </form>
                 </div>
             </div>

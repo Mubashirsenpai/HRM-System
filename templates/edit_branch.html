@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Branch - HR Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h2 mb-4">Edit Branch: {{ branch.name }}</h1>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Branch Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.edit_branch', id=branch.id) }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Branch Name</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ branch.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" value="{{ branch.location }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{{ branch.description }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Branch</button>
+                        <a href="{{ url_for('main.branches') }}" class="btn btn-secondary ms-2">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

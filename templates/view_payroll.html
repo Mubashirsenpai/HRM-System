@@ -1,66 +1,41 @@
 {% extends "base.html" %}
 
-{% block title %}View Payroll Record - HR Management System{% endblock %}
+{% block title %}View Payroll - HR Management System{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="h2 mb-4">Payroll Record Details</h1>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Details for {{ payroll.employee.first_name }} {{ payroll.employee.last_name }}</h5>
-                </div>
-                <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-4">Employee:</dt>
-                        <dd class="col-sm-8">{{ payroll.employee.first_name }} {{ payroll.employee.last_name }} ({{ payroll.employee.employee_id }})</dd>
+    <h1 class="h2 mb-4">Payroll Details</h1>
+    <div class="card">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Employee</dt>
+                <dd class="col-sm-9">{{ payroll.employee.first_name }} {{ payroll.employee.last_name }}</dd>
 
-                        <dt class="col-sm-4">Pay Period:</dt>
-                        <dd class="col-sm-8">{{ payroll.pay_period_start.strftime('%Y-%m-%d') }} to {{ payroll.pay_period_end.strftime('%Y-%m-%d') }}</dd>
+                <dt class="col-sm-3">Pay Period</dt>
+                <dd class="col-sm-9">{{ payroll.pay_period_start.strftime('%Y-%m-%d') }} to {{ payroll.pay_period_end.strftime('%Y-%m-%d') }}</dd>
 
-                        <dt class="col-sm-4">Basic Salary:</dt>
-                        <dd class="col-sm-8">${{ "%.2f"|format(payroll.basic_salary) }}</dd>
+                <dt class="col-sm-3">Gross Salary</dt>
+                <dd class="col-sm-9">${{ "%.2f"|format(payroll.gross_salary) if payroll.gross_salary is not none else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Overtime Pay:</dt>
-                        <dd class="col-sm-8">${{ "%.2f"|format(payroll.overtime_pay) }}</dd>
+                <dt class="col-sm-3">Overtime Pay</dt>
+                <dd class="col-sm-9">${{ "%.2f"|format(payroll.overtime_pay) if payroll.overtime_pay is not none else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Bonus:</dt>
-                        <dd class="col-sm-8">${{ "%.2f"|format(payroll.bonus) }}</dd>
+                <dt class="col-sm-3">Bonus</dt>
+                <dd class="col-sm-9">${{ "%.2f"|format(payroll.bonus) if payroll.bonus is not none else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Deductions:</dt>
-                        <dd class="col-sm-8">${{ "%.2f"|format(payroll.deductions) }}</dd>
+                <dt class="col-sm-3">Deductions</dt>
+                <dd class="col-sm-9">${{ "%.2f"|format(payroll.deductions) if payroll.deductions is not none else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Tax Deduction:</dt>
-                        <dd class="col-sm-8">${{ "%.2f"|format(payroll.tax_deduction) }}</dd>
+                <dt class="col-sm-3">Net Salary</dt>
+                <dd class="col-sm-9">${{ "%.2f"|format(payroll.net_salary) if payroll.net_salary is not none else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Net Salary:</dt>
-                        <dd class="col-sm-8">${{ "%.2f"|format(payroll.net_salary) }}</dd>
+                <dt class="col-sm-3">Status</dt>
+                <dd class="col-sm-9">{{ payroll.status.capitalize() if payroll.status else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Status:</dt>
-                        <dd class="col-sm-8"><span class="badge {% if payroll.status == 'paid' %}bg-success{% elif payroll.status == 'processed' %}bg-info{% else %}bg-warning{% endif %}">{{ payroll.status.capitalize() }}</span></dd>
-
-                        <dt class="col-sm-4">Generated On:</dt>
-                        <dd class="col-sm-8">{{ payroll.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
-                    </dl>
-                    <div class="mt-4">
-                        <a href="{{ url_for('edit_payroll', payroll_id=payroll.id) }}" class="btn btn-secondary">
-                            <i class="fas fa-edit me-2"></i>Edit Status
-                        </a>
-                        <a href="{{ url_for('delete_payroll', payroll_id=payroll.id) }}" class="btn btn-danger ms-2">
-                            <i class="fas fa-trash me-2"></i>Delete Record
-                        </a>
-                        <a href="{{ url_for('payroll') }}" class="btn btn-light ms-2">
-                            <i class="fas fa-arrow-left me-2"></i>Back to Payroll
-                        </a>
-                    </div>
-                </div>
-            </div>
+                <dt class="col-sm-3">Pay Date</dt>
+                <dd class="col-sm-9">{{ payroll.pay_date.strftime('%Y-%m-%d') if payroll.pay_date else 'N/A' }}</dd>
+            </dl>
+            <a href="{{ url_for('main.payroll') }}" class="btn btn-secondary">Back to Payroll</a>
         </div>
     </div>
 </div>

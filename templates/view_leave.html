@@ -14,36 +14,36 @@
         <div class="col-md-8 offset-md-2">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title mb-0">Details for {{ leave.employee.first_name }} {{ leave.employee.last_name }}</h5>
+                    <h5 class="card-title mb-0">Details for {{ leave_request.employee.first_name }} {{ leave_request.employee.last_name }}</h5>
                 </div>
                 <div class="card-body">
                     <dl class="row">
                         <dt class="col-sm-4">Employee:</dt>
-                        <dd class="col-sm-8">{{ leave.employee.first_name }} {{ leave.employee.last_name }} ({{ leave.employee.employee_id }})</dd>
+                        <dd class="col-sm-8">{{ leave_request.employee.first_name }} {{ leave_request.employee.last_name }} ({{ leave_request.employee.employee_id }})</dd>
 
                         <dt class="col-sm-4">Start Date:</dt>
-                        <dd class="col-sm-8">{{ leave.start_date.strftime('%Y-%m-%d') }}</dd>
+                        <dd class="col-sm-8">{{ leave_request.start_date.strftime('%Y-%m-%d') }}</dd>
 
                         <dt class="col-sm-4">End Date:</dt>
-                        <dd class="col-sm-8">{{ leave.end_date.strftime('%Y-%m-%d') }}</dd>
+                        <dd class="col-sm-8">{{ leave_request.end_date.strftime('%Y-%m-%d') }}</dd>
 
                         <dt class="col-sm-4">Reason:</dt>
-                        <dd class="col-sm-8">{{ leave.reason }}</dd>
+                        <dd class="col-sm-8">{{ leave_request.reason }}</dd>
 
                         <dt class="col-sm-4">Status:</dt>
-                        <dd class="col-sm-8"><span class="badge {% if leave.status == 'approved' %}bg-success{% elif leave.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">{{ leave.status.capitalize() }}</span></dd>
+                        <dd class="col-sm-8"><span class="badge {% if leave_request.status == 'approved' %}bg-success{% elif leave_request.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">{{ leave_request.status.capitalize() }}</span></dd>
 
                         <dt class="col-sm-4">Requested On:</dt>
-                        <dd class="col-sm-8">{{ leave.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                        <dd class="col-sm-8">{{ leave_request.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
                     </dl>
                     <div class="mt-4">
-                        <a href="{{ url_for('edit_leave', leave_id=leave.id) }}" class="btn btn-secondary">
+                        <a href="{{ url_for('main.edit_leave', leave_id=leave_request.id) }}" class="btn btn-secondary">
                             <i class="fas fa-edit me-2"></i>Edit Leave
                         </a>
-                        <a href="{{ url_for('delete_leave', leave_id=leave.id) }}" class="btn btn-danger ms-2">
+                        <a href="{{ url_for('main.delete_leave', leave_id=leave_request.id) }}" class="btn btn-danger ms-2">
                             <i class="fas fa-trash me-2"></i>Delete Leave
                         </a>
-                        <a href="{{ url_for('leaves') }}" class="btn btn-light ms-2">
+                        <a href="{{ url_for('main.leave') }}" class="btn btn-light ms-2">
                             <i class="fas fa-arrow-left me-2"></i>Back to Leave Requests
                         </a>
                     </div>

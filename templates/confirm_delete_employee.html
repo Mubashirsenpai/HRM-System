@@ -19,11 +19,11 @@
                 <div class="card-body">
                     <p class="card-text">Are you sure you want to delete the employee "<strong>{{ employee.first_name }} {{ employee.last_name }} ({{ employee.employee_id }})</strong>"?</p>
                     <p class="card-text text-danger"><strong>Warning: This action will also delete all associated records (leaves, attendance, payroll, performance reviews) for this employee. This action cannot be undone.</strong></p>
-                    <form method="POST" action="{{ url_for('delete_employee', id=employee.id) }}" class="mt-4">
+                    <form method="POST" action="{{ url_for('main.delete_employee', id=employee.id) }}" class="mt-4">
                         <button type="submit" class="btn btn-danger">
                             <i class="fas fa-trash me-2"></i>Confirm Delete
                         </button>
-                        <a href="{{ url_for('employees') }}" class="btn btn-secondary ms-2">
+                        <a href="{{ url_for('main.employees') }}" class="btn btn-secondary ms-2">
                             <i class="fas fa-times me-2"></i>Cancel
                         </a>
                     </form>

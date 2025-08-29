@@ -17,7 +17,7 @@
                     <h5 class="card-title mb-0">Department Details</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('add_department') }}">
+                    <form method="POST" action="{{ url_for('main.add_department') }}">
                         <div class="mb-3">
                             <label for="name" class="form-label">Department Name</label>
                             <input type="text" class="form-control" id="name" name="name" required>
@@ -27,7 +27,7 @@
                             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">Add Department</button>
-                        <a href="{{ url_for('departments') }}" class="btn btn-secondary ms-2">Cancel</a>
+                        <a href="{{ url_for('main.departments') }}" class="btn btn-secondary ms-2">Cancel</a>
                     </form>
                 </div>
             </div>
