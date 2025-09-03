@@ -1,33 +1,17 @@
-# HRM System Fix - Completed Tasks
+# TODO for Employee Profile Picture Display and PDF Embedding
 
-## Issue Fixed
-- **Routing Error**: Fixed the `BuildError: Could not build url for endpoint 'main.view_employee' with values ['id']` error
-
-## Changes Made
-
-### 1. routes.py
-- Added the missing `view_employee` route at line 95-98:
-  ```python
-  @bp.route('/employees/view/<int:id>')
-  def view_employee(id):
-      """View details of a single employee"""
-      employee = Employee.query.get_or_404(id)
-      return render_template('view_employee.html', employee=employee)
-  ```
-
-## Root Cause
-The error occurred because:
-1. The `employees.html` template was trying to generate a URL for `main.view_employee` endpoint
-2. The `view_employee.html` template existed but the corresponding route was missing
-3. This caused Flask's URL generation to fail when rendering the employees page
-
-## Verification
-- The application now runs successfully without routing errors
-- The "View" button on the employees page should now work correctly
-- The view employee functionality is fully operational
-
-## Files Modified
-- [x] `routes.py` - Added missing view_employee route
-
-## Status
-✅ **FIX COMPLETED** - Routing error resolved successfully
+- [x] Update `templates/view_employee.html` to display profile picture prominently in the header.
+- [x] Update `routes.py` employee_pdf route to embed profile picture in generated PDF if available.
+- [x] Enhance PDF layout with better image positioning and professional formatting.
+- [x] Organize PDF content in structured sections with two-column layout.
+- [x] Add company header and footer to PDF for professional appearance.
+- [x] Add circular border around profile picture in PDF.
+- [x] Ensure "HR Management System" header is properly displayed in PDF.
+- [x] Fix path separator issue in PDF generation (backslashes to forward slashes).
+- [ ] Test the employee view page to verify profile picture display.
+- [ ] Test PDF generation to verify profile picture embedding and new layout.
+- [ ] Verify fallback behavior when no profile picture is uploaded.
+- [ ] Verify error handling if image file is missing on disk.
+- [ ] Review styling and layout for profile picture display in the template.
+Next Steps:
+- Request user confirmation to proceed with testing or further improvements.

@@ -15,19 +15,19 @@
                 <dd class="col-sm-9">{{ payroll.pay_period_start.strftime('%Y-%m-%d') }} to {{ payroll.pay_period_end.strftime('%Y-%m-%d') }}</dd>
 
                 <dt class="col-sm-3">Gross Salary</dt>
-                <dd class="col-sm-9">${{ "%.2f"|format(payroll.gross_salary) if payroll.gross_salary is not none else 'N/A' }}</dd>
+                <dd class="col-sm-9">₵{{ "%.2f"|format(payroll.gross_salary) if payroll.gross_salary is not none else 'N/A' }}</dd>
 
                 <dt class="col-sm-3">Overtime Pay</dt>
-                <dd class="col-sm-9">${{ "%.2f"|format(payroll.overtime_pay) if payroll.overtime_pay is not none else 'N/A' }}</dd>
+                <dd class="col-sm-9">₵{{ "%.2f"|format(payroll.overtime_pay) if payroll.overtime_pay is not none else 'N/A' }}</dd>
 
                 <dt class="col-sm-3">Bonus</dt>
-                <dd class="col-sm-9">${{ "%.2f"|format(payroll.bonus) if payroll.bonus is not none else 'N/A' }}</dd>
+                <dd class="col-sm-9">₵{{ "%.2f"|format(payroll.bonus) if payroll.bonus is not none else 'N/A' }}</dd>
 
                 <dt class="col-sm-3">Deductions</dt>
-                <dd class="col-sm-9">${{ "%.2f"|format(payroll.deductions) if payroll.deductions is not none else 'N/A' }}</dd>
+                <dd class="col-sm-9">₵{{ "%.2f"|format(payroll.deductions) if payroll.deductions is not none else 'N/A' }}</dd>
 
                 <dt class="col-sm-3">Net Salary</dt>
-                <dd class="col-sm-9">${{ "%.2f"|format(payroll.net_salary) if payroll.net_salary is not none else 'N/A' }}</dd>
+                <dd class="col-sm-9">₵{{ "%.2f"|format(payroll.net_salary) if payroll.net_salary is not none else 'N/A' }}</dd>
 
                 <dt class="col-sm-3">Status</dt>
                 <dd class="col-sm-9">{{ payroll.status.capitalize() if payroll.status else 'N/A' }}</dd>

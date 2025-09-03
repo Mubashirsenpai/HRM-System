@@ -225,6 +225,29 @@ img {
     color: #2A4B6E;
 }
 
+/* Profile Picture Styling */
+.profile-picture-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.profile-picture {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #E0E6EB;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.profile-picture:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     .sidebar {
@@ -250,5 +273,11 @@ img {
     }
     .sidebar .nav-item:last-child {
         padding-top: 10px;
+    }
+
+    /* Responsive profile picture */
+    .profile-picture {
+        width: 120px;
+        height: 120px;
     }
 }

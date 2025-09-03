@@ -26,6 +26,7 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
+                                    <th>ID</th>
                                     <th>Title</th>
                                     <th>Description</th>
                                     <th>Department</th>
@@ -35,6 +36,7 @@
                             <tbody>
                                 {% for position in positions %}
                                 <tr>
+                                    <td><code>{{ position.id }}</code></td>
                                     <td>{{ position.title }}</td>
                                     <td>{{ position.description }}</td>
                                     <td>{{ position.department.name if position.department else 'N/A' }}</td>
@@ -48,7 +50,7 @@
                                 </tr>
                                 {% else %}
                                 <tr>
-                                    <td colspan="4" class="text-center">No positions found.</td>
+                                    <td colspan="5" class="text-center">No positions found.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

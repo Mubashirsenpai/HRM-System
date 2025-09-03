@@ -44,11 +44,11 @@
                                 <tr>
                                     <td>{{ payroll.employee.first_name }} {{ payroll.employee.last_name }}</td>
                                     <td>{{ payroll.pay_period_start.strftime('%Y-%m-%d') }} to {{ payroll.pay_period_end.strftime('%Y-%m-%d') }}</td>
-                                    <td>{% if payroll.gross_salary is not none %}${{ "%.2f"|format(payroll.gross_salary) }}{% else %}N/A{% endif %}</td>
-                                    <td>{% if payroll.overtime_pay is not none %}${{ "%.2f"|format(payroll.overtime_pay) }}{% else %}N/A{% endif %}</td>
-                                    <td>{% if payroll.bonus is not none %}${{ "%.2f"|format(payroll.bonus) }}{% else %}N/A{% endif %}</td>
-                                    <td>{% if payroll.deductions is not none %}${{ "%.2f"|format(payroll.deductions) }}{% else %}N/A{% endif %}</td>
-                                    <td>{% if payroll.net_salary is not none %}${{ "%.2f"|format(payroll.net_salary) }}{% else %}N/A{% endif %}</td>
+                                    <td>{% if payroll.gross_salary is not none %}₵{{ "%.2f"|format(payroll.gross_salary) }}{% else %}N/A{% endif %}</td>
+                                    <td>{% if payroll.overtime_pay is not none %}₵{{ "%.2f"|format(payroll.overtime_pay) }}{% else %}N/A{% endif %}</td>
+                                    <td>{% if payroll.bonus is not none %}₵{{ "%.2f"|format(payroll.bonus) }}{% else %}N/A{% endif %}</td>
+                                    <td>{% if payroll.deductions is not none %}₵{{ "%.2f"|format(payroll.deductions) }}{% else %}N/A{% endif %}</td>
+                                    <td>{% if payroll.net_salary is not none %}₵{{ "%.2f"|format(payroll.net_salary) }}{% else %}N/A{% endif %}</td>
                                     <td><span class="badge bg-success">{{ payroll.status.capitalize() if payroll.status else 'N/A' }}</span></td>
                                     <td>
                                         <div class="btn-group" role="group">

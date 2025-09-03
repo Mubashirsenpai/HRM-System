@@ -43,9 +43,9 @@ class Employee(db.Model):
     branch = db.relationship('Branch', back_populates='employees', lazy=True)
     department = db.relationship('Department', back_populates='department_employees', lazy=True)
     position = db.relationship('Position', back_populates='position_employees', lazy=True)
-    attendance = db.relationship('Attendance', backref='employee', lazy=True)
-    leaves = db.relationship('Leave', backref='employee', lazy=True)
-    payroll = db.relationship('Payroll', backref='employee', lazy=True)
+    attendance = db.relationship('Attendance', backref='employee', lazy=True, cascade='all, delete-orphan')
+    leaves = db.relationship('Leave', backref='employee', lazy=True, cascade='all, delete-orphan')
+    payroll = db.relationship('Payroll', backref='employee', lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f"<Employee {self.employee_id}>"

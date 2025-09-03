@@ -1,0 +1,3 @@
+employee_id,first_name,last_name,email,phone,appointment_date,department_id,position_id,salary,middle_name,corporate_email,address,marital_status,date_of_birth,emergency_contact,username,qualification,job_title,branch_id,employment_type
+EMP001,John,Doe,john.doe@example.com,123-456-7890,2023-01-15,1,1,50000.00,Michael,john.doe@company.com,123 Main St, City,Single,1990-05-15,Jane Doe - 555-1234,johndoe,Bachelor of Science,Software Engineer,1,full_time
+EMP002,Jane,Smith,jane.smith@example.com,987-654-3210,2024-02-20,2,2,60000.00,,jane.smith@company.com,456 Elm St, City,Married,1988-07-22,John Smith - 555-5678,janesmith,Master of Arts,Project Manager,2,full_time

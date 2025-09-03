@@ -130,7 +130,6 @@ def add_employee():
             username = request.form.get('username')
             qualification = request.form.get('qualification')
             job_title = request.form.get('job_title')
-            appointment_name = request.form.get('appointment_name')
             department_id = request.form.get('department_id')
             position_id = request.form.get('position_id')
             branch_id = request.form.get('branch_id')
@@ -138,24 +137,120 @@ def add_employee():
             salary = request.form.get('salary')
             employment_type = request.form.get('employment_type')
             
+            # Validate required fields
+            required_fields = {
+                'employee_id': employee_id,
+                'first_name': first_name,
+                'last_name': last_name,
+                'department_id': department_id,
+                'position_id': position_id,
+                'appointment_date': appointment_date_str,
+                'salary': salary
+            }
+            
+            missing_fields = [field for field, value in required_fields.items() if not value]
+            if missing_fields:
+                flash(f'Required fields are missing: {", ".join(missing_fields)}', 'danger')
+                return redirect(url_for('main.add_employee'))
+            
+            # Check if employee_id already exists
+            existing_employee = Employee.query.filter_by(employee_id=employee_id).first()
+            if existing_employee:
+                flash(f'Employee with ID {employee_id} already exists.', 'danger')
+                return redirect(url_for('main.add_employee'))
+            
+            # Check if email already exists (if provided)
+            if email:
+                existing_email = Employee.query.filter_by(email=email).first()
+                if existing_email:
+                    flash(f'Employee with email {email} already exists.', 'danger')
+                    return redirect(url_for('main.add_employee'))
+            
+            # Check if corporate_email already exists (if provided)
+            if corporate_email:
+                existing_corp_email = Employee.query.filter_by(corporate_email=corporate_email).first()
+                if existing_corp_email:
+                    flash(f'Employee with corporate email {corporate_email} already exists.', 'danger')
+                    return redirect(url_for('main.add_employee'))
+            
+            # Check if username already exists (if provided)
+            if username:
+                existing_username = Employee.query.filter_by(username=username).first()
+                if existing_username:
+                    flash(f'Employee with username {username} already exists.', 'danger')
+                    return redirect(url_for('main.add_employee'))
+            
+            # Validate foreign keys
+            department = Department.query.get(department_id)
+            if not department:
+                flash(f'Department with ID {department_id} not found.', 'danger')
+                return redirect(url_for('main.add_employee'))
+            
+            position = Position.query.get(position_id)
+            if not position:
+                flash(f'Position with ID {position_id} not found.', 'danger')
+                return redirect(url_for('main.add_employee'))
+            
+            if branch_id:
+                branch = Branch.query.get(branch_id)
+                if not branch:
+                    flash(f'Branch with ID {branch_id} not found.', 'danger')
+                    return redirect(url_for('main.add_employee'))
+            
+            # Parse dates
+            try:
+                appointment_date = datetime.strptime(appointment_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Invalid appointment date format. Please use YYYY-MM-DD format.', 'danger')
+                return redirect(url_for('main.add_employee'))
+            
+            date_of_birth = None
+            if date_of_birth_str:
+                try:
+                    date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
+                except ValueError:
+                    flash('Invalid date of birth format. Please use YYYY-MM-DD format.', 'danger')
+                    return redirect(url_for('main.add_employee'))
+            
+            # Validate salary
+            try:
+                salary_float = float(salary)
+                if salary_float <= 0:
+                    flash('Salary must be a positive number.', 'danger')
+                    return redirect(url_for('main.add_employee'))
+            except ValueError:
+                flash('Invalid salary format. Please enter a valid number.', 'danger')
+                return redirect(url_for('main.add_employee'))
+            
             # Handle image upload
             image_path = None
             if 'image' in request.files:
                 image = request.files['image']
                 if image.filename != '':
-                    # Save the image to a static directory
-                    image_path = os.path.join('static', 'images', image.filename)
-                    image.save(image_path)
-                    # Store the relative path in the database
-                    image_path = os.path.join('static', 'images', image.filename)
+                    try:
+                        # Create images directory if it doesn't exist
+                        images_dir = os.path.join('static', 'images')
+                        os.makedirs(images_dir, exist_ok=True)
 
-            if not all([employee_id, first_name, last_name, department_id, position_id, appointment_date_str, salary]):
-                flash('Required fields are missing.', 'danger')
-                return redirect(url_for('main.add_employee'))
+                        # Validate file extension
+                        allowed_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}
+                        ext = os.path.splitext(image.filename)[1].lower()
+                        if ext not in allowed_extensions:
+                            flash('Invalid image format. Please upload PNG, JPG, JPEG, GIF, or BMP files.', 'danger')
+                            return redirect(url_for('main.add_employee'))
+
+                        # Save the image with a unique filename to avoid conflicts
+                        import uuid
+                        unique_filename = f"{uuid.uuid4().hex}{ext}"
+                        image_path_full = os.path.join(images_dir, unique_filename)
+                        image.save(image_path_full)
+                        # Store the relative path in the database (relative to static folder)
+                        image_path = os.path.join('images', unique_filename)
+                    except Exception as e:
+                        flash(f'Error uploading image: {str(e)}', 'danger')
+                        return redirect(url_for('main.add_employee'))
             
-            appointment_date = datetime.strptime(appointment_date_str, '%Y-%m-%d').date()
-            date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date() if date_of_birth_str else None
-            
+            # Create new employee
             new_employee = Employee(
                 employee_id=employee_id,
                 first_name=first_name,
@@ -167,12 +262,11 @@ def add_employee():
                 phone=phone,
                 qualification=qualification,
                 job_title=job_title,
-                appointment_name=appointment_name,
-                department_id=department_id,
-                position_id=position_id,
-                branch_id=branch_id,
+                department_id=int(department_id),
+                position_id=int(position_id),
+                branch_id=int(branch_id) if branch_id else None,
                 appointment_date=appointment_date,
-                salary=float(salary),
+                salary=salary_float,
                 address=address,
                 marital_status=marital_status,
                 date_of_birth=date_of_birth,
@@ -186,11 +280,15 @@ def add_employee():
             
             flash('Employee added successfully!', 'success')
             return redirect(url_for('main.employees'))
+            
         except Exception as e:
             db.session.rollback()
-            flash(f'Error adding employee: {e}', 'danger')
+            flash(f'Error adding employee: {str(e)}', 'danger')
+            print(f"Error adding employee: {str(e)}")  # For debugging
 
+    # Return the form for GET requests
     return render_template('add_employee.html', departments=departments, positions=positions, branches=branches)
+
 
 @bp.route('/employees/edit/<int:id>', methods=['GET', 'POST'])
 def edit_employee(id):
@@ -198,17 +296,66 @@ def edit_employee(id):
     employee = Employee.query.get_or_404(id)
     departments = Department.query.all()
     positions = Position.query.all()
+    branches = Branch.query.all()
     if request.method == 'POST':
         try:
+            # Personal Information
             employee.employee_id = request.form.get('employee_id')
             employee.first_name = request.form.get('first_name')
+            employee.middle_name = request.form.get('middle_name')
             employee.last_name = request.form.get('last_name')
             employee.email = request.form.get('email')
+            employee.corporate_email = request.form.get('corporate_email')
+            employee.phone = request.form.get('phone')
+            employee.address = request.form.get('address')
+            employee.marital_status = request.form.get('marital_status')
+
+            # Employment Information
+            employee.username = request.form.get('username')
+            employee.qualification = request.form.get('qualification')
+            employee.job_title = request.form.get('job_title')
             employee.department_id = request.form.get('department_id')
             employee.position_id = request.form.get('position_id')
-            employee.phone = request.form.get('phone')
+            employee.branch_id = request.form.get('branch_id') if request.form.get('branch_id') else None
             employee.appointment_date = datetime.strptime(request.form.get('appointment_date'), '%Y-%m-%d').date()
             employee.salary = float(request.form.get('salary'))
+            employee.emergency_contact = request.form.get('emergency_contact')
+            employee.employment_type = request.form.get('employment_type')
+
+            # Handle date of birth
+            date_of_birth_str = request.form.get('date_of_birth')
+            if date_of_birth_str:
+                employee.date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
+            else:
+                employee.date_of_birth = None
+
+            # Handle image upload
+            if 'image' in request.files:
+                image = request.files['image']
+                if image.filename != '':
+                    try:
+                        # Create images directory if it doesn't exist
+                        images_dir = os.path.join('static', 'images')
+                        os.makedirs(images_dir, exist_ok=True)
+
+                        # Validate file extension
+                        allowed_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.bmp'}
+                        ext = os.path.splitext(image.filename)[1].lower()
+                        if ext not in allowed_extensions:
+                            flash('Invalid image format. Please upload PNG, JPG, JPEG, GIF, or BMP files.', 'danger')
+                            return redirect(url_for('main.edit_employee', id=id))
+
+                        # Save the image with a unique filename to avoid conflicts
+                        import uuid
+                        unique_filename = f"{uuid.uuid4().hex}{ext}"
+                        image_path_full = os.path.join(images_dir, unique_filename)
+                        image.save(image_path_full)
+                        # Store the relative path in the database (relative to static folder)
+                        employee.image_path = os.path.join('images', unique_filename)
+                    except Exception as e:
+                        flash(f'Error uploading image: {str(e)}', 'danger')
+                        return redirect(url_for('main.edit_employee', id=id))
+
             db.session.commit()
             flash('Employee updated successfully!', 'success')
             return redirect(url_for('main.employees'))
@@ -216,7 +363,7 @@ def edit_employee(id):
             db.session.rollback()
             flash(f'Error updating employee: {e}', 'danger')
 
-    return render_template('edit_employee.html', employee=employee, departments=departments, positions=positions)
+    return render_template('edit_employee.html', employee=employee, departments=departments, positions=positions, branches=branches)
 
 from flask import send_file
 from fpdf import FPDF
@@ -232,55 +379,167 @@ def employee_pdf(id):
     """Generate and serve employee details as PDF"""
     try:
         employee = Employee.query.get_or_404(id)
-        
-        # Create PDF
-        pdf = FPDF()
+
+        # Create PDF with custom page size
+        pdf = FPDF('P', 'mm', 'A4')
         pdf.add_page()
-        
-        # Set font
-        pdf.set_font("Arial", 'B', 16)
-        
-        # Title
-        pdf.cell(200, 10, f"Employee Details: {employee.first_name} {employee.last_name}", 0, 1, 'C')
-        pdf.ln(10)
-        
-        # Set font for content
+
+        # Set margins
+        pdf.set_margins(20, 20, 20)
+
+        # Header Section
+        pdf.set_font("Arial", 'B', 20)
+        pdf.set_text_color(0, 51, 102)  # Dark blue
+        pdf.cell(0, 15, "HR Management System", 0, 1, 'C')
+        pdf.ln(5)
+
+        # Employee Name and ID
+        pdf.set_font("Arial", 'B', 18)
+        pdf.set_text_color(0, 0, 0)  # Black
+        full_name = f"{employee.first_name} {employee.middle_name if employee.middle_name else ''} {employee.last_name}".strip()
+        pdf.cell(0, 12, full_name, 0, 1, 'C')
         pdf.set_font("Arial", '', 12)
-        
-        # Employee details
-        details = [
-            f"Employee ID: {employee.employee_id}",
-            f"Full Name: {employee.first_name} {employee.middle_name if employee.middle_name else ''} {employee.last_name}",
-            f"Personal Email: {employee.email if employee.email else 'N/A'}",
-            f"Corporate Email: {employee.corporate_email if employee.corporate_email else 'N/A'}",
-            f"Username: {employee.username if employee.username else 'N/A'}",
-            f"Phone: {employee.phone if employee.phone else 'N/A'}",
-            f"Department: {employee.department.name if employee.department else 'N/A'}",
-            f"Position: {employee.position.title if employee.position else 'N/A'}",
-            f"Job Title: {employee.job_title if employee.job_title else 'N/A'}",
-            f"Qualification: {employee.qualification if employee.qualification else 'N/A'}",
-            f"Appointment Name: {employee.appointment_name if employee.appointment_name else 'N/A'}",
-            f"Appointment Date: {employee.appointment_date.strftime('%Y-%m-%d')}",
-            f"Address: {employee.address if employee.address else 'N/A'}",
-            f"Marital Status: {employee.marital_status if employee.marital_status else 'N/A'}",
-            f"Date of Birth: {employee.date_of_birth.strftime('%Y-%m-%d') if employee.date_of_birth else 'N/A'}",
-            f"Emergency Contact: {employee.emergency_contact if employee.emergency_contact else 'N/A'}",
-            f"Salary: ${employee.salary:.2f}",
-            f"Employment Type: {employee.employment_type.capitalize() if employee.employment_type else 'N/A'}",
-            f"Created At: {employee.created_at.strftime('%Y-%m-%d %H:%M')}"
-        ]
-        
-        for detail in details:
-            pdf.cell(200, 10, detail, 0, 1)
-            pdf.ln(2)
-        
+        pdf.cell(0, 8, f"Employee ID: {employee.employee_id}", 0, 1, 'C')
+        pdf.ln(10)
+
+        # Profile Picture Section
+        if employee.image_path:
+            from PIL import Image, ImageDraw
+            import tempfile
+
+            # Normalize path separators for cross-platform compatibility
+            normalized_path = employee.image_path.replace('\\', '/')
+            image_path = os.path.join('static', normalized_path)
+            if os.path.exists(image_path):
+                # Open the image with Pillow
+                with Image.open(image_path).convert("RGBA") as im:
+                    # Resize image to smaller size for faster processing
+                    max_size = (200, 200)
+                    im.thumbnail(max_size, Image.LANCZOS)
+
+                    # Create same size alpha layer with circle
+                    bigsize = (im.size[0] * 3, im.size[1] * 3)
+                    mask = Image.new('L', bigsize, 0)
+                    draw = ImageDraw.Draw(mask)
+                    draw.ellipse((0, 0) + bigsize, fill=255)
+                    # Replace deprecated ANTIALIAS with LANCZOS for Pillow >= 10.0.0
+                    mask = mask.resize(im.size, Image.LANCZOS)
+                    im.putalpha(mask)
+
+                    # Save to a temporary file
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmpfile:
+                        temp_path = tmpfile.name
+                        im.save(temp_path, format="PNG")
+
+                    # Center the image in PDF
+                    x_pos = 75
+                    y_pos = pdf.get_y()
+                    width = 60
+                    height = 60
+
+                    # Draw the circular image
+                    pdf.image(temp_path, x=x_pos, y=y_pos, w=width, h=height)
+
+                    pdf.ln(height + 15)  # Space for image
+
+                    # Remove temporary file
+                    os.remove(temp_path)
+            else:
+                pdf.ln(10)
+        else:
+            pdf.ln(10)
+
+        # Personal Information Section
+        pdf.set_font("Arial", 'B', 14)
+        pdf.set_text_color(0, 51, 102)
+        pdf.cell(0, 10, "Personal Information", 0, 1, 'L')
+        pdf.ln(2)
+
+        # Draw line under section header
+        pdf.set_draw_color(0, 51, 102)
+        pdf.line(20, pdf.get_y(), 190, pdf.get_y())
+        pdf.ln(5)
+
+        pdf.set_font("Arial", '', 11)
+        pdf.set_text_color(0, 0, 0)
+
+        # Left column
+        pdf.cell(90, 8, f"Full Name: {full_name}", 0, 0)
+        pdf.cell(90, 8, f"Date of Birth: {employee.date_of_birth.strftime('%B %d, %Y') if employee.date_of_birth else 'N/A'}", 0, 1)
+
+        pdf.cell(90, 8, f"Personal Email: {employee.email if employee.email else 'N/A'}", 0, 0)
+        pdf.cell(90, 8, f"Marital Status: {employee.marital_status if employee.marital_status else 'N/A'}", 0, 1)
+
+        pdf.cell(90, 8, f"Phone: {employee.phone if employee.phone else 'N/A'}", 0, 0)
+        pdf.cell(90, 8, f"Emergency Contact: {employee.emergency_contact if employee.emergency_contact else 'N/A'}", 0, 1)
+
+        if employee.address:
+            pdf.cell(0, 8, f"Address: {employee.address}", 0, 1)
+
+        pdf.ln(10)
+
+        # Employment Information Section
+        pdf.set_font("Arial", 'B', 14)
+        pdf.set_text_color(0, 51, 102)
+        pdf.cell(0, 10, "Employment Information", 0, 1, 'L')
+        pdf.ln(2)
+
+        # Draw line under section header
+        pdf.line(20, pdf.get_y(), 190, pdf.get_y())
+        pdf.ln(5)
+
+        pdf.set_font("Arial", '', 11)
+        pdf.set_text_color(0, 0, 0)
+
+        pdf.cell(90, 8, f"Department: {employee.department.name if employee.department else 'N/A'}", 0, 0)
+        pdf.cell(90, 8, f"Position: {employee.position.title if employee.position else 'N/A'}", 0, 1)
+
+        pdf.cell(90, 8, f"Job Title: {employee.job_title if employee.job_title else 'N/A'}", 0, 0)
+        pdf.cell(90, 8, f"Employment Type: {employee.employment_type.capitalize() if employee.employment_type else 'N/A'}", 0, 1)
+
+        pdf.cell(90, 8, f"Appointment Date: {employee.appointment_date.strftime('%B %d, %Y') if employee.appointment_date else 'N/A'}", 0, 0)
+        pdf.cell(90, 8, f"Salary: GHS {employee.salary:,.2f}", 0, 1)
+
+        pdf.cell(90, 8, f"Corporate Email: {employee.corporate_email if employee.corporate_email else 'N/A'}", 0, 0)
+        pdf.cell(90, 8, f"Username: {employee.username if employee.username else 'N/A'}", 0, 1)
+
+        if employee.qualification:
+            pdf.cell(0, 8, f"Qualification: {employee.qualification}", 0, 1)
+
+        if employee.branch:
+            pdf.cell(0, 8, f"Branch: {employee.branch.name}", 0, 1)
+
+        pdf.ln(10)
+
+        # Additional Information Section
+        pdf.set_font("Arial", 'B', 14)
+        pdf.set_text_color(0, 51, 102)
+        pdf.cell(0, 10, "Additional Information", 0, 1, 'L')
+        pdf.ln(2)
+
+        # Draw line under section header
+        pdf.line(20, pdf.get_y(), 190, pdf.get_y())
+        pdf.ln(5)
+
+        pdf.set_font("Arial", '', 11)
+        pdf.set_text_color(0, 0, 0)
+
+        pdf.cell(90, 8, f"Created At: {employee.created_at.strftime('%B %d, %Y %H:%M')}", 0, 1)
+
+        # Footer
+        pdf.ln(20)
+        pdf.set_font("Arial", 'I', 8)
+        pdf.set_text_color(128, 128, 128)
+        pdf.cell(0, 5, "Generated by HR Management System", 0, 1, 'C')
+        pdf.cell(0, 5, f"Generated on: {datetime.now().strftime('%B %d, %Y %H:%M')}", 0, 1, 'C')
+
         # Create response
         response = make_response(pdf.output(dest='S').encode('latin1'))
         response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = f'attachment; filename=employee_{employee.employee_id}_details.pdf'
-        
+        response.headers['Content-Disposition'] = f'attachment; filename=employee_{employee.employee_id}_profile.pdf'
+
         return response
-        
+
     except Exception as e:
         flash(f'Error generating PDF: {e}', 'danger')
         return redirect(url_for('main.view_employee', id=id))
@@ -309,8 +568,21 @@ def sample_csv():
     # Create a sample CSV in memory
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['employee_id', 'first_name', 'last_name', 'email', 'phone', 'appointment_date', 'department_id', 'position_id', 'salary'])
-    writer.writerow(['EMP001', 'John', 'Doe', 'john.doe@example.com', '123-456-7890', '2023-01-15', '1', '1', '50000.00'])
+    # Include all the fields that are used in the add employee form
+    writer.writerow([
+        'employee_id', 'first_name', 'last_name', 'email', 'phone',
+        'appointment_date', 'department_id', 'position_id', 'salary',
+        'middle_name', 'corporate_email', 'address', 'marital_status',
+        'date_of_birth', 'emergency_contact', 'username', 'qualification',
+        'job_title', 'branch_id', 'employment_type'
+    ])
+    writer.writerow([
+        'EMP001', 'John', 'Doe', 'john.doe@example.com', '123-456-7890',
+        '2023-01-15', '1', '1', '50000.00',
+        'Michael', 'john.doe@company.com', '123 Main St, City', 'Single',
+        '1990-05-15', 'Jane Doe - 555-1234', 'johndoe', 'Bachelor of Science',
+        'Software Engineer', '1', 'full_time'
+    ])
     
     # Create response
     response = make_response(output.getvalue())
@@ -390,11 +662,11 @@ def bulk_upload_employees():
                         error_count += 1
                         continue
                     
-                    # Validate hire date
+                    # Validate appointment date
                     try:
-                        hire_date = datetime.strptime(row['hire_date'], '%Y-%m-%d').date()
+                        appointment_date = datetime.strptime(row['appointment_date'], '%Y-%m-%d').date()
                     except ValueError:
-                        errors.append(f"Row {i+1}: Invalid hire date format. Use YYYY-MM-DD")
+                        errors.append(f"Row {i+1}: Invalid appointment date format. Use YYYY-MM-DD")
                         error_count += 1
                         continue
                     
@@ -406,17 +678,53 @@ def bulk_upload_employees():
                         error_count += 1
                         continue
                     
+                    # Parse optional fields
+                    middle_name = row.get('middle_name')
+                    corporate_email = row.get('corporate_email')
+                    address = row.get('address')
+                    marital_status = row.get('marital_status')
+                    date_of_birth_str = row.get('date_of_birth')
+                    emergency_contact = row.get('emergency_contact')
+                    username = row.get('username')
+                    qualification = row.get('qualification')
+                    job_title = row.get('job_title')
+                    branch_id_str = row.get('branch_id')
+                    employment_type = row.get('employment_type')
+
+                    date_of_birth = None
+                    if date_of_birth_str:
+                        try:
+                            date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
+                        except ValueError:
+                            errors.append(f"Row {i+1}: Invalid date_of_birth format. Use YYYY-MM-DD")
+                            error_count += 1
+                            continue
+
+                    branch_id = int(branch_id_str) if branch_id_str else None
+
                     # Create new employee
                     new_employee = Employee(
                         employee_id=row['employee_id'],
                         first_name=row['first_name'],
+                        middle_name=middle_name,
                         last_name=row['last_name'],
+                        username=username,
                         email=row['email'],
+                        corporate_email=corporate_email,
                         phone=row['phone'],
+                        qualification=qualification,
+                        job_title=job_title,
                         department_id=int(row['department_id']),
                         position_id=int(row['position_id']),
-                        hire_date=hire_date,
-                        salary=salary
+                        branch_id=branch_id,
+                        appointment_date=appointment_date,
+                        address=address,
+                        marital_status=marital_status,
+                        date_of_birth=date_of_birth,
+                        image_path=None,
+                        emergency_contact=emergency_contact,
+                        salary=salary,
+                        employment_type=employment_type
                     )
                     
                     db.session.add(new_employee)
@@ -930,7 +1238,7 @@ def api_departments():
             'id': d.id,
             'name': d.name,
             'description': d.description,
-            'employee_count': len(d.employees)
+            'employee_count': len(d.department_employees)
         } for d in departments
     ])
 
@@ -946,7 +1254,7 @@ def api_positions():
             'department': p.department.name if p.department else 'N/A',
             'salary_range_min': p.salary_range_min,
             'salary_range_max': p.salary_range_max,
-            'employee_count': len(p.employees)
+            'employee_count': len(p.position_employees)
         } for p in positions
     ])
 

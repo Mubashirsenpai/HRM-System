@@ -10,98 +10,93 @@
         </div>
     </div>
     
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Details</h5>
-                </div>
-                <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-4">Employee ID:</dt>
-                        <dd class="col-sm-8">{{ employee.employee_id }}</dd>
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                {% if employee.image_path %}
+                    <img src="{{ url_for('static', filename=employee.image_path) }}" alt="Profile Picture" class="profile-picture me-3" style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%;">
+                {% else %}
+                    <img src="{{ url_for('static', filename='images/default-avatar.png') }}" alt="Default Profile Picture" class="profile-picture me-3" style="width: 120px; height: 120px; object-fit: cover; border-radius: 50%;">
+                {% endif %}
+                <h5 class="card-title mb-0">Details</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Employee ID:</dt>
+                    <dd class="col-sm-8">{{ employee.employee_id }}</dd>
 
-                        <dt class="col-sm-4">Full Name:</dt>
-                        <dd class="col-sm-8">{{ employee.first_name }} {{ employee.middle_name if employee.middle_name else '' }} {{ employee.last_name }}</dd>
+                    <dt class="col-sm-4">Full Name:</dt>
+                    <dd class="col-sm-8">{{ employee.first_name }} {{ employee.middle_name if employee.middle_name else '' }} {{ employee.last_name }}</dd>
 
-                        <dt class="col-sm-4">Personal Email:</dt>
-                        <dd class="col-sm-8">{{ employee.email if employee.email else 'N/A' }}</dd>
+                    <dt class="col-sm-4">Personal Email:</dt>
+                    <dd class="col-sm-8">{{ employee.email if employee.email else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Corporate Email:</dt>
-                        <dd class="col-sm-8">{{ employee.corporate_email if employee.corporate_email else 'N/A' }}</dd>
+                    <dt class="col-sm-4">Corporate Email:</dt>
+                    <dd class="col-sm-8">{{ employee.corporate_email if employee.corporate_email else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Username:</dt>
-                        <dd class="col-sm-8">{{ employee.username if employee.username else 'N/A' }}</dd>
+                    <dt class="col-sm-4">Username:</dt>
+                    <dd class="col-sm-8">{{ employee.username if employee.username else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Phone:</dt>
-                        <dd class="col-sm-8">{{ employee.phone if employee.phone else 'N/A' }}</dd>
+                    <dt class="col-sm-4">Phone:</dt>
+                    <dd class="col-sm-8">{{ employee.phone if employee.phone else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Department:</dt>
-                        <dd class="col-sm-8">{{ employee.department.name if employee.department else 'N/A' }}</dd>
+                    <dt class="col-sm-4">Department:</dt>
+                    <dd class="col-sm-8">{{ employee.department.name if employee.department else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Position:</dt>
-                        <dd class="col-sm-8">{{ employee.position.title if employee.position else 'N/A' }}</dd>
+                    <dt class="col-sm-4">Position:</dt>
+                    <dd class="col-sm-8">{{ employee.position.title if employee.position else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Job Title:</dt>
-                        <dd class="col-sm-8">{{ employee.job_title if employee.job_title else 'N/A' }}</dd>
+                    <dt class="col-sm-4">Job Title:</dt>
+                    <dd class="col-sm-8">{{ employee.job_title if employee.job_title else 'N/A' }}</dd>
 
-                        <dt class="col-sm-4">Qualification:</dt>
-                        <dd class="col-sm-8">{{ employee.qualification if employee.qualification else 'N/A' }}</dd>
-
-                        <dt class="col-sm-4">Appointment Name:</dt>
-                        <dd class="col-sm-8">{{ employee.appointment_name if employee.appointment_name else 'N/A' }}</dd>
-
-                        <dt class="col-sm-4">Appointment Date:</dt>
-                        <dd class="col-sm-8">{{ employee.appointment_date.strftime('%Y-%m-%d') }}</dd>
-
-                        <dt class="col-sm-4">Address:</dt>
-                        <dd class="col-sm-8">{{ employee.address }}</dd>
-
-                        <dt class="col-sm-4">Marital Status:</dt>
-                        <dd class="col-sm-8">{{ employee.marital_status }}</dd>
-
-                        <dt class="col-sm-4">Date of Birth:</dt>
-                        <dd class="col-sm-8">{{ employee.date_of_birth.strftime('%Y-%m-%d') if employee.date_of_birth else 'N/A' }}</dd>
-
-                        <dt class="col-sm-4">Profile Picture:</dt>
-                        <dd class="col-sm-8">
-                            {% if employee.image_path %}
-                                <img src="{{ url_for('static', filename=employee.image_path) }}" alt="Profile Picture" style="width: 100px; height: auto;">
-                            {% else %}
-                                N/A
-                            {% endif %}
-                        </dd>
-
-                        <dt class="col-sm-4">Emergency Contact:</dt>
-                        <dd class="col-sm-8">{{ employee.emergency_contact }}</dd>
-
-                        <dt class="col-sm-4">Salary:</dt>
-                        <dd class="col-sm-8">${{ "%.2f"|format(employee.salary) }}</dd>
-                        
-                        <dt class="col-sm-4">Employment Type:</dt>
-                        <dd class="col-sm-8">{{ employee.employment_type.capitalize() if employee.employment_type else 'N/A' }}</dd>
+                    <dt class="col-sm-4">Qualification:</dt>
+                    <dd class="col-sm-8">{{ employee.qualification if employee.qualification else 'N/A' }}</dd>
 
 
-                        <dt class="col-sm-4">Created At:</dt>
-                        <dd class="col-sm-8">{{ employee.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
-                    </dl>
-                    <div class="mt-4">
-                        <a href="{{ url_for('main.edit_employee', id=employee.id) }}" class="btn btn-secondary">
-                            <i class="fas fa-edit me-2"></i>Edit Employee
-                        </a>
-                        <a href="{{ url_for('main.delete_employee', id=employee.id) }}" class="btn btn-danger ms-2">
-                            <i class="fas fa-trash me-2"></i>Delete Employee
-                        </a>
-                        <a href="{{ url_for('main.employees') }}" class="btn btn-light ms-2">
-                            <i class="fas fa-arrow-left me-2"></i>Back to Employees
-                        </a>
-                        <a href="{{ url_for('main.employee_pdf', id=employee.id) }}" class="btn btn-info ms-2">
-                            <i class="fas fa-download me-2"></i>Save as PDF
-                        </a>
-                    </div>
+
+                    <dt class="col-sm-4">Appointment Date:</dt>
+                    <dd class="col-sm-8">{{ employee.appointment_date.strftime('%Y-%m-%d') }}</dd>
+
+                    <dt class="col-sm-4">Address:</dt>
+                    <dd class="col-sm-8">{{ employee.address }}</dd>
+
+                    <dt class="col-sm-4">Marital Status:</dt>
+                    <dd class="col-sm-8">{{ employee.marital_status }}</dd>
+
+                    <dt class="col-sm-4">Date of Birth:</dt>
+                    <dd class="col-sm-8">{{ employee.date_of_birth.strftime('%Y-%m-%d') if employee.date_of_birth else 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">Emergency Contact:</dt>
+                    <dd class="col-sm-8">{{ employee.emergency_contact }}</dd>
+
+                    <dt class="col-sm-4">Salary:</dt>
+                    <dd class="col-sm-8">₵{{ "%.2f"|format(employee.salary) }}</dd>
+                    
+                    <dt class="col-sm-4">Employment Type:</dt>
+                    <dd class="col-sm-8">{{ employee.employment_type.capitalize() if employee.employment_type else 'N/A' }}</dd>
+
+
+                    <dt class="col-sm-4">Created At:</dt>
+                    <dd class="col-sm-8">{{ employee.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                </dl>
+                <div class="mt-4">
+                    <a href="{{ url_for('main.edit_employee', id=employee.id) }}" class="btn btn-secondary">
+                        <i class="fas fa-edit me-2"></i>Edit Employee
+                    </a>
+                    <a href="{{ url_for('main.delete_employee', id=employee.id) }}" class="btn btn-danger ms-2">
+                        <i class="fas fa-trash me-2"></i>Delete Employee
+                    </a>
+                    <a href="{{ url_for('main.employees') }}" class="btn btn-light ms-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Employees
+                    </a>
+                    <a href="{{ url_for('main.employee_pdf', id=employee.id) }}" class="btn btn-info ms-2">
+                        <i class="fas fa-download me-2"></i>Save as PDF
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+</div>
 </div>
 {% endblock %}
