@@ -37,7 +37,15 @@
                         </div>
                         <div class="mb-3">
                             <label for="reason" class="form-label">Reason</label>
-                            <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                            <select class="form-select" id="reason" name="reason" required>
+                                <option value="">Select Reason</option>
+                                <option value="Annual Leave">Annual Leave</option>
+                                <option value="Maternity">Maternity</option>
+                                <option value="Paternity">Paternity</option>
+                                <option value="Sick">Sick</option>
+                                <option value="Casual Leave">Casual Leave</option>
+                                <option value="Others">Others</option>
+                            </select>
                         </div>
                         <button type="submit" class="btn btn-primary">Submit Request</button>
                         <a href="{{ url_for('main.leave') }}" class="btn btn-secondary ms-2">Cancel</a>

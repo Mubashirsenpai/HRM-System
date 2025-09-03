@@ -8,6 +8,9 @@ from database import db
 from models import *
 import os
 import csv
+import re
+import html
+from functools import wraps
 # import pandas as pd  # Commented out due to compatibility issues
 import io
 
@@ -15,25 +18,41 @@ import io
 bp = Blueprint('main', __name__)
 
 # --- New Routes for Authentication ---
+from flask_login import login_user, logout_user, login_required, current_user
+
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """Placeholder login route"""
-    # For now, we will just redirect to the dashboard.
-    # In a real application, you would handle user authentication here.
-    return redirect(url_for('main.dashboard'))
+    """Login route to authenticate users"""
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
+            login_user(user)
+            flash('Logged in successfully.', 'success')
+            next_page = request.args.get('next')
+            return redirect(next_page or url_for('main.dashboard'))
+        else:
+            flash('Invalid username or password.', 'danger')
+
+    return render_template('login.html')
 
 @bp.route('/logout')
+@login_required
 def logout():
     """Logout route to clear the session"""
-    # In a real application, you might use flask-login to handle this.
-    # Here, we'll just clear the session and redirect to login or dashboard.
-    session.clear()
+    logout_user()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('main.dashboard'))
+    return redirect(url_for('main.login'))
 # --- End of New Routes ---
 
 
 @bp.route('/')
+@login_required
 def dashboard():
     """Main dashboard with system overview"""
     total_employees = Employee.query.count()
@@ -99,13 +118,55 @@ def dashboard():
                             all_recent_activities=all_recent_activities)
 
 # --- Employee Management Routes ---
-@bp.route('/employees')
+@bp.route('/employees', methods=['GET', 'POST'])
+@login_required
 def employees():
-    """Display all employees"""
-    employees = Employee.query.all()
-    return render_template('employees.html', employees=employees)
+    """Display all employees and handle search with pagination"""
+    search_query = None
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+
+    # Validate per_page to prevent abuse
+    if per_page not in [10, 25, 50]:
+        per_page = 10
+
+    def sanitize_input(user_input):
+        # Remove any non-alphanumeric characters except spaces, @, ., -, _
+        if user_input is None:
+            return None
+        sanitized = re.sub(r'[^\w\s@.\-]', '', user_input)
+        # Escape HTML to prevent XSS
+        sanitized = html.escape(sanitized)
+        return sanitized
+
+    if request.method == 'POST':
+        search_query = request.form.get('search')
+        search_query = sanitize_input(search_query)
+        if search_query:
+            # Search by employee_id, first_name, last_name, or email (case-insensitive)
+            query = Employee.query.filter(
+                (Employee.employee_id.ilike(f'%{search_query}%')) |
+                (Employee.first_name.ilike(f'%{search_query}%')) |
+                (Employee.last_name.ilike(f'%{search_query}%')) |
+                (Employee.email.ilike(f'%{search_query}%'))
+            )
+        else:
+            query = Employee.query
+    else:
+        query = Employee.query
+
+    # Apply pagination
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    employees = pagination.items
+
+    return render_template('employees.html',
+                         employees=employees,
+                         search_query=search_query,
+                         pagination=pagination,
+                         per_page=per_page)
 
 @bp.route('/employees/add', methods=['GET', 'POST'])
+@login_required
 def add_employee():
     """Add a new employee"""
     departments = Department.query.all()
@@ -291,6 +352,7 @@ def add_employee():
 
 
 @bp.route('/employees/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
 def edit_employee(id):
     """Edit an existing employee"""
     employee = Employee.query.get_or_404(id)
@@ -369,6 +431,7 @@ from flask import send_file
 from fpdf import FPDF
 
 @bp.route('/employees/view/<int:id>', methods=['GET'])
+@login_required
 def view_employee(id):
     """View details of a single employee"""
     employee = Employee.query.get_or_404(id)
@@ -545,6 +608,7 @@ def employee_pdf(id):
         return redirect(url_for('main.view_employee', id=id))
 
 @bp.route('/employees/delete/<int:id>', methods=['POST', 'GET'])
+@login_required
 def delete_employee(id):
     """Delete an employee"""
     employee = Employee.query.get_or_404(id)
@@ -563,6 +627,7 @@ def delete_employee(id):
     
 # --- Bulk Employee Upload Routes ---
 @bp.route('/employees/sample_csv')
+@login_required
 def sample_csv():
     """Provide a sample CSV template for bulk employee upload"""
     # Create a sample CSV in memory
@@ -591,6 +656,7 @@ def sample_csv():
     return response
 
 @bp.route('/employees/sample_excel')
+@login_required
 def sample_excel():
     """Provide a sample Excel template for bulk employee upload"""
     # Create a simple CSV alternative since Excel support is disabled
@@ -599,6 +665,7 @@ def sample_excel():
     return redirect(url_for('main.sample_csv'))
 
 @bp.route('/employees/bulk_upload', methods=['GET', 'POST'])
+@login_required
 def bulk_upload_employees():
     """Handle bulk upload of employees from CSV or Excel files"""
     if request.method == 'POST':
@@ -756,12 +823,14 @@ def bulk_upload_employees():
 
 # --- Branch Management Routes ---
 @bp.route('/branches')
+@login_required
 def branches():
     """Display all branches"""
     branches = Branch.query.all()
     return render_template('branches.html', branches=branches)
 
 @bp.route('/branches/add', methods=['GET', 'POST'])
+@login_required
 def add_branch():
     """Add a new branch"""
     if request.method == 'POST':
@@ -780,6 +849,7 @@ def add_branch():
     return render_template('add_branch.html')
 
 @bp.route('/branches/view/<int:id>')
+@login_required
 def view_branch(id):
     """View details of a single branch"""
     branch = Branch.query.get_or_404(id)
@@ -1033,6 +1103,102 @@ def view_leave(leave_id):
     """View details of a single leave request"""
     leave_request = Leave.query.get_or_404(leave_id)
     return render_template('view_leave.html', leave_request=leave_request)
+
+# --- Public Leave Request Routes (No Login Required) ---
+@bp.route('/public/leave/request', methods=['GET', 'POST'])
+def public_leave_request():
+    """Public page for employees to submit leave requests"""
+    if request.method == 'POST':
+        try:
+            # Collect employee information
+            employee_id = request.form.get('employee_id')
+            first_name = request.form.get('first_name')
+            last_name = request.form.get('last_name')
+            email = request.form.get('email')
+            phone = request.form.get('phone')
+            department = request.form.get('department')
+
+            # Collect leave information
+            start_date = datetime.strptime(request.form.get('start_date'), '%Y-%m-%d').date()
+            end_date = datetime.strptime(request.form.get('end_date'), '%Y-%m-%d').date()
+            reason = request.form.get('reason')
+            additional_notes = request.form.get('additional_notes')
+
+            # Find employee by employee_id if provided
+            employee = None
+            if employee_id:
+                employee = Employee.query.filter_by(employee_id=employee_id).first()
+
+            # If employee exists, use their ID, otherwise create a temporary leave request
+            if employee:
+                new_leave = Leave(
+                    employee_id=employee.id,
+                    start_date=start_date,
+                    end_date=end_date,
+                    reason=reason,
+                    status='pending'
+                )
+            else:
+                # For public requests without matching employee, we'll store additional info
+                # We'll need to modify the Leave model to handle this
+                new_leave = Leave(
+                    employee_id=None,  # Will be assigned later by HR
+                    start_date=start_date,
+                    end_date=end_date,
+                    reason=reason,
+                    status='pending'
+                )
+                # Store additional information in the reason field or create a new field
+                extended_reason = f"{reason}\n\nEmployee Details:\nName: {first_name} {last_name}\nEmail: {email}\nPhone: {phone}\nDepartment: {department}"
+                if additional_notes:
+                    extended_reason += f"\nAdditional Notes: {additional_notes}"
+                new_leave.reason = extended_reason
+
+            db.session.add(new_leave)
+            db.session.commit()
+
+            # Store request ID in session for status checking
+            session['last_leave_request_id'] = new_leave.id
+
+            flash('Your leave request has been submitted successfully! Please note down this reference for future inquiries.', 'success')
+            return redirect(url_for('main.public_leave_status'))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error submitting leave request: {str(e)}', 'danger')
+
+    return render_template('public_leave_request.html')
+
+@bp.route('/public/leave/status', methods=['GET', 'POST'])
+def public_leave_status():
+    """Public page for employees to check their leave request status"""
+    leave_request = None
+    if request.method == 'POST':
+        request_id = request.form.get('request_id')
+        email = request.form.get('email')
+
+        if request_id:
+            try:
+                leave_request = Leave.query.get(int(request_id))
+                # Basic email verification (in production, you'd want more secure verification)
+                if leave_request and email in leave_request.reason:
+                    pass  # Valid request
+                else:
+                    flash('Request not found or email does not match.', 'warning')
+                    leave_request = None
+            except ValueError:
+                flash('Invalid request ID format.', 'danger')
+        else:
+            flash('Please provide a request ID.', 'warning')
+
+    # Show last submitted request if available
+    if 'last_leave_request_id' in session and not leave_request:
+        try:
+            leave_request = Leave.query.get(session['last_leave_request_id'])
+        except:
+            pass
+
+    return render_template('public_leave_status.html', leave_request=leave_request)
 
 
 # --- Attendance Management Routes ---

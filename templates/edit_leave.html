@@ -36,7 +36,15 @@
                         </div>
                         <div class="mb-3">
                             <label for="reason" class="form-label">Reason</label>
-                            <textarea class="form-control" id="reason" name="reason" rows="3" required>{{ leave_request.reason }}</textarea>
+                            <select class="form-select" id="reason" name="reason" required>
+                                <option value="">Select Reason</option>
+                                <option value="Annual Leave" {% if leave_request.reason == 'Annual Leave' %}selected{% endif %}>Annual Leave</option>
+                                <option value="Maternity" {% if leave_request.reason == 'Maternity' %}selected{% endif %}>Maternity</option>
+                                <option value="Paternity" {% if leave_request.reason == 'Paternity' %}selected{% endif %}>Paternity</option>
+                                <option value="Sick" {% if leave_request.reason == 'Sick' %}selected{% endif %}>Sick</option>
+                                <option value="Casual Leave" {% if leave_request.reason == 'Casual Leave' %}selected{% endif %}>Casual Leave</option>
+                                <option value="Others" {% if leave_request.reason == 'Others' %}selected{% endif %}>Others</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="status" class="form-label">Status</label>

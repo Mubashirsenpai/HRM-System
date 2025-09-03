@@ -1,18 +1,18 @@
 import pytest
-from app import app as create_app
+from app import app
 from database import db as _db
 from models import Employee, Department, Payroll
 
 @pytest.fixture
 def app():
-    app = create_app()
-    app.config.update({
+    from app import app as flask_app
+    flask_app.config.update({
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
         "WTF_CSRF_ENABLED": False,
     })
 
-    with app.app_context():
+    with flask_app.app_context():
         _db.create_all()
         # Setup initial data
         dept = Department(name="HR", description="Human Resources")
@@ -28,9 +28,9 @@ def app():
         _db.session.add(payroll)
         _db.session.commit()
 
-    yield app
+    yield flask_app
 
-    with app.app_context():
+    with flask_app.app_context():
         _db.drop_all()
 
 @pytest.fixture

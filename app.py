@@ -5,6 +5,7 @@ Main application entry point
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from dotenv import load_dotenv
@@ -15,15 +16,17 @@ import os
 app = Flask(__name__)
 
 # Use environment variable for SECRET_KEY for security
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-if not app.config['SECRET_KEY']:
-    raise ValueError("No SECRET_KEY set for Flask application. Set the SECRET_KEY environment variable.")
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
 
-# --- PostgreSQL Database Configuration ---
-# Replace with your PostgreSQL credentials and database name
-# Example: 'postgresql://username:password@localhost:5432/hrm_db'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-# --- End PostgreSQL Configuration ---
+# --- Database Configuration ---
+# Use PostgreSQL if DATABASE_URL is set, otherwise use SQLite
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Fallback to SQLite for development
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/hrm.db'
+# --- End Database Configuration ---
 
 # Import db from database.py
 from database import db
@@ -33,6 +36,15 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database with app
 db.init_app(app)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'main.login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # Import models
 from models import (
